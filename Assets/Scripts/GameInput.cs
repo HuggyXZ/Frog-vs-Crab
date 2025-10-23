@@ -35,4 +35,10 @@ public class GameInput : MonoBehaviour {
     public bool IsJumpActionPressed() {
         return inputActions.Player.Jump.WasPerformedThisFrame();
     }
+
+    // Method to check if the jump action was released
+    // use WasReleasedThisFrame() to check if the action was just released
+    public bool IsJumpActionReleased() {
+        return inputActions.Player.Jump.WasReleasedThisFrame();
+    }
 }
