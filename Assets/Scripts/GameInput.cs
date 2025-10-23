@@ -32,7 +32,7 @@ public class GameInput : MonoBehaviour {
 
     // Method to check if the jump action was pressed
     // use WasPerformedThisFrame() to check if the action was just pressed
-    public bool IsJumpActionPressed() {
+    public bool WasJumpActionPerformed() {
         return inputActions.Player.Jump.WasPerformedThisFrame();
     }
 
