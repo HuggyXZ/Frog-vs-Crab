@@ -2,11 +2,12 @@ using UnityEngine;
 
 public class Player : MonoBehaviour {
     private Rigidbody2D myRigidBody;
-    private bool isFacingRight = true;
+    public Animator animator; // move to PlayerVisual
 
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 10f;
     private bool isMovingRight = true; // input direction for Flip()
+    private bool isFacingRight = true;
 
     [Header("Jump")]
     [SerializeField] private float jumpPower = 30f;
@@ -24,6 +25,7 @@ public class Player : MonoBehaviour {
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.05f);
     [SerializeField] private LayerMask groundLayer;
+    private bool isGrounded;
     private bool wasGrounded;
 
     [Header("Wall Check")]
@@ -39,11 +41,10 @@ public class Player : MonoBehaviour {
     private bool isWallJumping;       // request flag
     private bool wallJumpLock;        // persistent movement lock
     private float wallJumpDirection;  // +1 right, -1 left
-    [SerializeField] private float wallJumpLockTime = 0.2f;
+    [SerializeField] private float wallJumpCoyoteCounter;
+    [SerializeField] private float wallJumpCoyoteTime = 0.1f; // duration of be able to wall jump after leaving wall
+    [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
-
-    // Add wallJumpTime
-    // Add wallJumpTimer
 
     private void Awake() {
         myRigidBody = GetComponent<Rigidbody2D>();
@@ -52,27 +53,50 @@ public class Player : MonoBehaviour {
     private void Update() {
         HandleJumpInput();
         GroundCheck();
+        // DON'T update physics-derived animator params here.
+    }
+
+    private void LateUpdate() {
+        // Update animator AFTER physics (FixedUpdate) so velocity values are up-to-date
+        animator.SetFloat("horizontalSpeed", Mathf.Abs(myRigidBody.linearVelocityX));
+        animator.SetBool("isGrounded", isGrounded);
+        // Falling is true when going down and not grounded (exclude wall sliding if you prefer)
+        animator.SetBool("isFalling", myRigidBody.linearVelocityY < -0.1f && !isGrounded && !isWallSliding);
+        animator.SetBool("isWallSliding", isWallSliding);
     }
 
     private void FixedUpdate() {
-        Debug.Log($"wallJumpLock: {wallJumpLock}");
         ApplyJump();
         ApplyWallJump();
         ApplyFallGravity();
         ProcessWallSlide();
+        ProcessWallJumpCoyote();
 
         // normal movement only if not wall-jump locked
         if (!wallJumpLock) {
-            HandleMovement();
+            HandleMovementInput();
             Flip();
         }
     }
 
     private void HandleJumpInput() {
-        // Normal jump
+        // Normal jump (ground or mid-air double jump)
         if (GameInput.Instance.WasJumpActionPerformed() && jumpRemaining > 0) {
             isJumping = true;
             jumpRemaining--;
+
+            // If not grounded then this is a air-jump
+            bool isAirJump = !isGrounded;
+
+            // Trigger animation: single jump or air jump
+            animator.SetTrigger(isAirJump ? "airJumpTrigger" : "jumpTrigger");
+
+            /*if (isAirJump) {
+                animator.SetTrigger("airJumpTrigger");
+            }
+            else {
+                animator.SetTrigger("jumpTrigger");
+            }*/
         }
 
         // Short-tap jump cut (light jump)
@@ -80,10 +104,16 @@ public class Player : MonoBehaviour {
             myRigidBody.linearVelocityY *= jumpCutMultiplier;
         }
 
-        // Wall jump (only while sliding)
-        if (GameInput.Instance.WasJumpActionPerformed() && isWallSliding) {
+        // Wall jump (only while sliding or within coyote window)
+        if (GameInput.Instance.WasJumpActionPerformed() && wallJumpCoyoteCounter > 0f) {
             isWallJumping = true;
             wallJumpLock = true;
+            wallJumpCoyoteCounter = 0f;
+
+            // stop wall-slide state immediately and trigger jump animation
+            isWallSliding = false;
+            animator.SetTrigger("airJumpTrigger");
+
             Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
         }
     }
@@ -104,11 +134,12 @@ public class Player : MonoBehaviour {
 
         // Apply jump velocity
         myRigidBody.linearVelocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);
+        jumpRemaining = 1;
 
         isWallJumping = false;
     }
 
-    private void HandleMovement() {
+    private void HandleMovementInput() {
         if (GameInput.Instance.IsRightActionPressed()) {
             myRigidBody.linearVelocityX = walkSpeed;
             isMovingRight = true;
@@ -134,7 +165,6 @@ public class Player : MonoBehaviour {
         transform.localScale = scale;
     }
 
-
     private void ProcessWallSlide() {
         // Slide only when airborne and touching a wall
         if (!wasGrounded && WallCheck() &&
@@ -152,9 +182,22 @@ public class Player : MonoBehaviour {
         }
     }
 
+    private void ProcessWallJumpCoyote() {
+        if (isWallSliding) {
+            wallJumpCoyoteCounter = wallJumpCoyoteTime;
+        }
+        else if (wallJumpCoyoteCounter > 0f) {
+            wallJumpCoyoteCounter -= Time.deltaTime; // decrease timer over time
+        }
+    }
+
+    private void CancelWallJumpLock() {
+        wallJumpLock = false;
+    }
+
     private void ApplyFallGravity() {
         // stronger gravity while falling
-        if (myRigidBody.linearVelocityY < 0f && !wasGrounded) {
+        if (myRigidBody.linearVelocityY < 0f && !isGrounded) {
             myRigidBody.gravityScale = baseGravity * fallMultiplier;
         }
         else {
@@ -169,15 +212,15 @@ public class Player : MonoBehaviour {
     }
 
     private void GroundCheck() {
-        bool isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, groundLayer);
+        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, groundLayer);
 
-        if (isGrounded && !wasGrounded) jumpRemaining = maxJumpCount;
+        if (isGrounded && !wasGrounded) {
+            jumpRemaining = maxJumpCount;
 
+            Debug.Log("Land");
+            animator.SetTrigger("landTrigger");
+        }
         wasGrounded = isGrounded;
-    }
-
-    private void CancelWallJumpLock() {
-        wallJumpLock = false;
     }
 
     private void OnDrawGizmosSelected() {
