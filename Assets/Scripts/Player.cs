@@ -10,6 +10,7 @@ public class Player : MonoBehaviour {
     public event EventHandler OnLanded;
 
     private Rigidbody2D myRigidBody;
+    [SerializeField] private ParticleSystem smokeFX;
 
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 10f;
@@ -84,11 +85,13 @@ public class Player : MonoBehaviour {
             jumpRemaining--;
 
             // If not grounded then this is a air-jump
-            if (!isGrounded && !isWallSliding) {
+            if (!isGrounded) {
                 OnAirJump?.Invoke(this, EventArgs.Empty);
+                smokeFX.Play();
             }
-            else if (!isWallSliding) {
+            else {
                 OnJump?.Invoke(this, EventArgs.Empty);
+                smokeFX.Play();
             }
         }
 
@@ -102,11 +105,10 @@ public class Player : MonoBehaviour {
             isWallJumping = true;
             wallJumpLock = true;
             wallJumpCoyoteCounter = 0f;
-
-            // stop wall-slide state immediately and trigger jump animation
-            isWallSliding = false;
+            isWallSliding = false; // stop wall-slide state immediately and trigger jump animation
 
             OnWallJump?.Invoke(this, EventArgs.Empty);
+            smokeFX.Play();
 
             Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
         }
@@ -145,18 +147,6 @@ public class Player : MonoBehaviour {
         else {
             myRigidBody.linearVelocityX = 0f;
         }
-    }
-
-    private void Flip() {
-        if (isMovingRight && !isFacingRight) FlipCharacter(true);
-        else if (!isMovingRight && isFacingRight) FlipCharacter(false);
-    }
-
-    private void FlipCharacter(bool faceRight) {
-        isFacingRight = faceRight;
-        Vector3 scale = transform.localScale;
-        scale.x = Mathf.Abs(scale.x) * (faceRight ? 1f : -1f);
-        transform.localScale = scale;
     }
 
     private void ProcessWallSlide() {
@@ -215,6 +205,22 @@ public class Player : MonoBehaviour {
         wasGrounded = isGrounded;
     }
 
+    private void Flip() {
+        if (isMovingRight && !isFacingRight) FlipCharacter(true);
+        else if (!isMovingRight && isFacingRight) FlipCharacter(false);
+    }
+
+    private void FlipCharacter(bool faceRight) {
+        isFacingRight = faceRight;
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (faceRight ? 1f : -1f);
+        transform.localScale = scale;
+
+        if (isGrounded) {
+            smokeFX.Play();
+        }
+    }
+
     private void OnDrawGizmosSelected() {
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
@@ -232,7 +238,7 @@ public class Player : MonoBehaviour {
     }
 
     public bool GetIsFalling() {
-        // Falling is true when going down and not grounded (exclude wall sliding if you prefer)
+        // Falling is true when falling down and not on the ground and not on a wall sliding, and not a short fall
         return myRigidBody.linearVelocityY < -0.1f && !isGrounded && !isWallSliding;
     }
 
