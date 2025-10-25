@@ -1243,6 +1243,7 @@ GameObject:
   - component: {fileID: 922186257}
   - component: {fileID: 922186256}
   - component: {fileID: 922186255}
+  - component: {fileID: 922186258}
   m_Layer: 0
   m_Name: PlayerSprite
   m_TagString: Untagged
@@ -1345,6 +1346,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1292898669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &922186258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922186254}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99b78de94946fec48b94eec5517433d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerVisual
 --- !u!1 &1292898664
 GameObject:
   m_ObjectHideFlags: 0
@@ -1376,7 +1389,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6b0c757e48732d4991851cd65a7ba17, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
-  animator: {fileID: 922186255}
   walkSpeed: 10
   jumpPower: 30
   jumpCutMultiplier: 0.5
@@ -1396,7 +1408,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   wallSlideSpeed: 3
-  wallJumpCoyoteTimer: 0
+  wallJumpCoyoteCounter: 0
   wallJumpCoyoteTime: 0.1
   wallJumpLockTime: 0.2
   wallJumpPower: {x: 10, y: 30}

@@ -1,8 +1,15 @@
 using UnityEngine;
+using System;
 
 public class Player : MonoBehaviour {
+    public static Player Instance { get; private set; }
+
+    public event EventHandler OnJump;
+    public event EventHandler OnAirJump;
+    public event EventHandler OnWallJump;
+    public event EventHandler OnLanded;
+
     private Rigidbody2D myRigidBody;
-    public Animator animator; // move to PlayerVisual
 
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 10f;
@@ -47,22 +54,13 @@ public class Player : MonoBehaviour {
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
 
     private void Awake() {
+        Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
     }
 
     private void Update() {
         HandleJumpInput();
         GroundCheck();
-        // DON'T update physics-derived animator params here.
-    }
-
-    private void LateUpdate() {
-        // Update animator AFTER physics (FixedUpdate) so velocity values are up-to-date
-        animator.SetFloat("horizontalSpeed", Mathf.Abs(myRigidBody.linearVelocityX));
-        animator.SetBool("isGrounded", isGrounded);
-        // Falling is true when going down and not grounded (exclude wall sliding if you prefer)
-        animator.SetBool("isFalling", myRigidBody.linearVelocityY < -0.1f && !isGrounded && !isWallSliding);
-        animator.SetBool("isWallSliding", isWallSliding);
     }
 
     private void FixedUpdate() {
@@ -86,17 +84,12 @@ public class Player : MonoBehaviour {
             jumpRemaining--;
 
             // If not grounded then this is a air-jump
-            bool isAirJump = !isGrounded;
-
-            // Trigger animation: single jump or air jump
-            animator.SetTrigger(isAirJump ? "airJumpTrigger" : "jumpTrigger");
-
-            /*if (isAirJump) {
-                animator.SetTrigger("airJumpTrigger");
+            if (!isGrounded && !isWallSliding) {
+                OnAirJump?.Invoke(this, EventArgs.Empty);
             }
-            else {
-                animator.SetTrigger("jumpTrigger");
-            }*/
+            else if (!isWallSliding) {
+                OnJump?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         // Short-tap jump cut (light jump)
@@ -112,7 +105,8 @@ public class Player : MonoBehaviour {
 
             // stop wall-slide state immediately and trigger jump animation
             isWallSliding = false;
-            animator.SetTrigger("airJumpTrigger");
+
+            OnWallJump?.Invoke(this, EventArgs.Empty);
 
             Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
         }
@@ -216,9 +210,7 @@ public class Player : MonoBehaviour {
 
         if (isGrounded && !wasGrounded) {
             jumpRemaining = maxJumpCount;
-
-            Debug.Log("Land");
-            animator.SetTrigger("landTrigger");
+            OnLanded?.Invoke(this, EventArgs.Empty);
         }
         wasGrounded = isGrounded;
     }
@@ -229,5 +221,22 @@ public class Player : MonoBehaviour {
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
+    }
+
+    public float GetHorizontalSpeed() {
+        return Mathf.Abs(myRigidBody.linearVelocityX);
+    }
+
+    public bool GetIsGrounded() {
+        return isGrounded;
+    }
+
+    public bool GetIsFalling() {
+        // Falling is true when going down and not grounded (exclude wall sliding if you prefer)
+        return myRigidBody.linearVelocityY < -0.1f && !isGrounded && !isWallSliding;
+    }
+
+    public bool GetIsWallSliding() {
+        return isWallSliding;
     }
 }
