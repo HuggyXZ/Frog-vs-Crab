@@ -8,14 +8,17 @@ public class Player : MonoBehaviour {
     public event EventHandler OnAirJump;
     public event EventHandler OnWallJump;
     public event EventHandler OnLanded;
+    public event EventHandler OnFlip;
+    public event EventHandler OnStartMovingSameDirection;
 
     private Rigidbody2D myRigidBody;
-    [SerializeField] private ParticleSystem smokeFX;
 
     [Header("Movement")]
     [SerializeField] private float walkSpeed = 10f;
     private bool isMovingRight = true; // input direction for Flip()
     private bool isFacingRight = true;
+    private float stopMovingTimer = 0f; // timer count up
+    [SerializeField] private float stopMovingThreshold = 1f; // seconds of standing still to consider "stopped moving"
 
     [Header("Jump")]
     [SerializeField] private float jumpPower = 30f;
@@ -49,7 +52,7 @@ public class Player : MonoBehaviour {
     private bool isWallJumping;       // request flag
     private bool wallJumpLock;        // persistent movement lock
     private float wallJumpDirection;  // +1 right, -1 left
-    [SerializeField] private float wallJumpCoyoteCounter;
+    [SerializeField] private float wallJumpCoyoteCounter; // counter count down
     [SerializeField] private float wallJumpCoyoteTime = 0.1f; // duration of be able to wall jump after leaving wall
     [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
@@ -87,11 +90,9 @@ public class Player : MonoBehaviour {
             // If not grounded then this is a air-jump
             if (!isGrounded) {
                 OnAirJump?.Invoke(this, EventArgs.Empty);
-                smokeFX.Play();
             }
             else {
                 OnJump?.Invoke(this, EventArgs.Empty);
-                smokeFX.Play();
             }
         }
 
@@ -108,7 +109,6 @@ public class Player : MonoBehaviour {
             isWallSliding = false; // stop wall-slide state immediately and trigger jump animation
 
             OnWallJump?.Invoke(this, EventArgs.Empty);
-            smokeFX.Play();
 
             Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
         }
@@ -136,16 +136,30 @@ public class Player : MonoBehaviour {
     }
 
     private void HandleMovementInput() {
+        // Moving right
         if (GameInput.Instance.IsRightActionPressed()) {
             myRigidBody.linearVelocityX = walkSpeed;
             isMovingRight = true;
+
+            if (stopMovingTimer >= stopMovingThreshold) {
+                OnStartMovingSameDirection?.Invoke(this, EventArgs.Empty);
+            }
+            stopMovingTimer = 0f; // reset timer whenever moving
         }
+        // Moving left
         else if (GameInput.Instance.IsLeftActionPressed()) {
             myRigidBody.linearVelocityX = -walkSpeed;
             isMovingRight = false;
+
+            if (stopMovingTimer >= stopMovingThreshold) {
+                OnStartMovingSameDirection?.Invoke(this, EventArgs.Empty);
+            }
+            stopMovingTimer = 0f; // reset timer whenever moving
         }
+        // Not moving
         else {
             myRigidBody.linearVelocityX = 0f;
+            stopMovingTimer += Time.deltaTime;
         }
     }
 
@@ -216,9 +230,7 @@ public class Player : MonoBehaviour {
         scale.x = Mathf.Abs(scale.x) * (faceRight ? 1f : -1f);
         transform.localScale = scale;
 
-        if (isGrounded) {
-            smokeFX.Play();
-        }
+        OnFlip?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnDrawGizmosSelected() {
