@@ -1,8 +1,8 @@
 using UnityEngine;
 using System;
 
-public class Player : MonoBehaviour {
-    public static Player Instance { get; private set; }
+public class PlayerMovement : MonoBehaviour {
+    public static PlayerMovement Instance { get; private set; }
 
     public event EventHandler OnJump;
     public event EventHandler OnAirJump;
@@ -31,11 +31,12 @@ public class Player : MonoBehaviour {
     [SerializeField] private float baseGravity = 3f;
     [SerializeField] private float maxFallSpeed = 30f;
     [SerializeField] private float fallMultiplier = 3f;
+    private bool isFalling;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.05f);
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LayerMask landLayer;
     private bool isGrounded;
     private bool wasGrounded;
 
@@ -45,14 +46,15 @@ public class Player : MonoBehaviour {
     [SerializeField] private LayerMask wallLayer;
 
     [Header("Wall Movement")]
+    // Wall Slide
     [SerializeField] private float wallSlideSpeed = 3f;
     private bool isWallSliding;
 
-    [Header("Wall Jump")]
+    // Wall Jump
     private bool isWallJumping;       // request flag
     private bool wallJumpLock;        // persistent movement lock
     private float wallJumpDirection;  // +1 right, -1 left
-    [SerializeField] private float wallJumpCoyoteCounter; // counter count down
+    private float wallJumpCoyoteCounter; // counter count down
     [SerializeField] private float wallJumpCoyoteTime = 0.1f; // duration of be able to wall jump after leaving wall
     [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
@@ -83,7 +85,7 @@ public class Player : MonoBehaviour {
 
     private void HandleJumpInput() {
         // Normal jump (ground or mid-air double jump)
-        if (GameInput.Instance.WasJumpActionPerformed() && jumpRemaining > 0) {
+        if (GameInput.Instance.WasJumpActionPerformed() && jumpRemaining > 0 && wallJumpCoyoteCounter <= 0f) {
             isJumping = true;
             jumpRemaining--;
 
@@ -130,7 +132,6 @@ public class Player : MonoBehaviour {
 
         // Apply jump velocity
         myRigidBody.linearVelocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);
-        jumpRemaining = 1;
 
         isWallJumping = false;
     }
@@ -195,10 +196,14 @@ public class Player : MonoBehaviour {
 
     private void ApplyFallGravity() {
         // stronger gravity while falling
-        if (myRigidBody.linearVelocityY < 0f && !isGrounded) {
+        if (myRigidBody.linearVelocityY < 0f && !isGrounded && !isWallSliding) {
+            isFalling = true;
+            // apply fall multiplier
             myRigidBody.gravityScale = baseGravity * fallMultiplier;
         }
         else {
+            isFalling = false;
+            // reset gravity
             myRigidBody.gravityScale = baseGravity;
         }
         // limit max fall speed
@@ -210,7 +215,7 @@ public class Player : MonoBehaviour {
     }
 
     private void GroundCheck() {
-        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, groundLayer);
+        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, landLayer);
 
         if (isGrounded && !wasGrounded) {
             jumpRemaining = maxJumpCount;
@@ -250,8 +255,7 @@ public class Player : MonoBehaviour {
     }
 
     public bool GetIsFalling() {
-        // Falling is true when falling down and not on the ground and not on a wall sliding, and not a short fall
-        return myRigidBody.linearVelocityY < -0.1f && !isGrounded && !isWallSliding;
+        return isFalling;
     }
 
     public bool GetIsWallSliding() {

@@ -2,37 +2,38 @@ using UnityEngine;
 
 public class PlayerVisual : MonoBehaviour {
 
-    private Animator animator;
+    [SerializeField] private Animator animator;
     [SerializeField] private ParticleSystem smokeFX;
-    [SerializeField] private float timeSinceLastSmokeFX = 0;
-    private float minSmokeFXInterval = 1;
 
-    private void Awake() {
-        animator = GetComponent<Animator>();
-    }
+    [Header("SmokeFX")]
+    private float timeSinceLastFlip = 0; // time since last flip
+    [SerializeField] private float minSmokeFXTime = 1; // minimum time between smokeFX plays
 
     private void Start() {
         // Subscribe to player events
-        Player.Instance.OnJump += Player_OnJump;
-        Player.Instance.OnAirJump += Player_OnAirJump;
-        Player.Instance.OnWallJump += Player_OnWallJump;
-        Player.Instance.OnLanded += Player_OnLanded;
-        Player.Instance.OnFlip += Player_OnFlip;
-        Player.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
+        PlayerMovement.Instance.OnJump += Player_OnJump;
+        PlayerMovement.Instance.OnAirJump += Player_OnAirJump;
+        PlayerMovement.Instance.OnWallJump += Player_OnWallJump;
+        PlayerMovement.Instance.OnLanded += Player_OnLanded;
+        PlayerMovement.Instance.OnFlip += Player_OnFlip;
+        PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
     }
 
     // Update is called once per frame
     void Update() {
         // DON'T update physics-derived animator params here.
-        timeSinceLastSmokeFX = Mathf.Min(timeSinceLastSmokeFX + Time.deltaTime, minSmokeFXInterval);
+
+        if (timeSinceLastFlip < minSmokeFXTime) {
+            timeSinceLastFlip += Time.deltaTime;
+        }
     }
 
     private void LateUpdate() {
         // Update animator AFTER physics (FixedUpdate) so velocity values are up-to-date
-        animator.SetFloat("horizontalSpeed", Player.Instance.GetHorizontalSpeed());
-        animator.SetBool("isGrounded", Player.Instance.GetIsGrounded());
-        animator.SetBool("isFalling", Player.Instance.GetIsFalling());
-        animator.SetBool("isWallSliding", Player.Instance.GetIsWallSliding());
+        animator.SetFloat("horizontalSpeed", PlayerMovement.Instance.GetHorizontalSpeed());
+        animator.SetBool("isGrounded", PlayerMovement.Instance.GetIsGrounded());
+        animator.SetBool("isFalling", PlayerMovement.Instance.GetIsFalling());
+        animator.SetBool("isWallSliding", PlayerMovement.Instance.GetIsWallSliding());
     }
 
     private void Player_OnJump(object sender, System.EventArgs e) {
@@ -52,11 +53,11 @@ public class PlayerVisual : MonoBehaviour {
     }
 
     private void Player_OnFlip(object sender, System.EventArgs e) {
-        bool isGrounded = Player.Instance.GetIsGrounded();
-        if (isGrounded && timeSinceLastSmokeFX >= minSmokeFXInterval) {
+        bool isGrounded = PlayerMovement.Instance.GetIsGrounded();
+        if (isGrounded && timeSinceLastFlip >= minSmokeFXTime) {
             smokeFX.Play();
         }
-        timeSinceLastSmokeFX = 0;
+        timeSinceLastFlip = 0;
     }
 
     private void Player_OnStartMovingSameDirection(object sender, System.EventArgs e) {
