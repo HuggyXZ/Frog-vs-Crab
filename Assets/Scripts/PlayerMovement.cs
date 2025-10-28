@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour {
     public event EventHandler OnLanded;
     public event EventHandler OnFlip;
     public event EventHandler OnStartMovingSameDirection;
+    public event EventHandler OnPowerUp;
 
     private Rigidbody2D myRigidBody;
 
@@ -59,9 +60,19 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
 
+    [Header("PowerUp")] // Add timer
+    [SerializeField] private float powerUpSpeedIncrease = 5f;
+    [SerializeField] private float powerUpJumpIncrease = 10f;
+    [SerializeField] private float powerUpTime = 15f;
+    private float powerUpTimer = 0f;
+
     private void Awake() {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
+    }
+
+    private void Start() {
+        HoldToPowerUp.OnHoldComplete += HoldToPowerUp_OnHoldComplete;
     }
 
     private void Update() {
@@ -244,6 +255,13 @@ public class PlayerMovement : MonoBehaviour {
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
+    }
+
+    private void HoldToPowerUp_OnHoldComplete() {
+        OnPowerUp?.Invoke(this, EventArgs.Empty);
+        // Add timer
+        walkSpeed += powerUpSpeedIncrease;
+        jumpPower += powerUpJumpIncrease;
     }
 
     public float GetHorizontalSpeed() {

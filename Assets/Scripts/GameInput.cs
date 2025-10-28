@@ -41,4 +41,12 @@ public class GameInput : MonoBehaviour {
     public bool IsJumpActionReleased() {
         return inputActions.Player.Jump.WasReleasedThisFrame();
     }
+
+    public bool IsHoldActionPressed() {
+        return inputActions.Player.Hold.IsPressed();
+    }
+
+    public bool IsHoldActionReleased() {
+        return inputActions.Player.Hold.WasReleasedThisFrame();
+    }
 }

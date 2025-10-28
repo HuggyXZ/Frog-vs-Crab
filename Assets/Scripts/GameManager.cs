@@ -1,15 +1,25 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
+    public static GameManager Instance { get; private set; }
+
     int progressAmount;
+
+    [SerializeField] GameObject LoadCanvas;
     [SerializeField] private Slider progressSlider;
 
+    private void Awake() {
+        Instance = this;
+    }
+
     void Start() {
+        Star.OnStarCollect += Star_OnStarCollect;
+        PlayerMovement.Instance.OnPowerUp += PlayerMovement_OnPowerUp;
+
         progressAmount = 0;
         progressSlider.value = 0;
-        Star.OnStarCollect += Star_OnStarCollect;
+        LoadCanvas.SetActive(false);
     }
 
     private void Star_OnStarCollect(int starValue) {
@@ -17,7 +27,18 @@ public class GameManager : MonoBehaviour {
         progressSlider.value = progressAmount;
 
         if (progressAmount >= 100) {
-            Debug.Log("You win!");
+            LoadCanvas.SetActive(true);
+            Debug.Log("Power Up Ready");
         }
+    }
+
+    private void PlayerMovement_OnPowerUp(object sender, System.EventArgs e) {
+        LoadCanvas.SetActive(false);
+        progressAmount = 0;
+        progressSlider.value = 0;
+    }
+
+    private void OnDestroy() {
+        Star.OnStarCollect -= Star_OnStarCollect;
     }
 }

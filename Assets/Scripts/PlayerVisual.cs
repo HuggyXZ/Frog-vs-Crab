@@ -23,7 +23,7 @@ public class PlayerVisual : MonoBehaviour {
     void Update() {
         // DON'T update physics-derived animator params here.
 
-        if (timeSinceLastFlip < minSmokeFXTime) {
+        if (timeSinceLastFlip <= minSmokeFXTime) {
             timeSinceLastFlip += Time.deltaTime;
         }
     }
@@ -54,7 +54,7 @@ public class PlayerVisual : MonoBehaviour {
 
     private void Player_OnFlip(object sender, System.EventArgs e) {
         bool isGrounded = PlayerMovement.Instance.GetIsGrounded();
-        if (isGrounded && timeSinceLastFlip >= minSmokeFXTime) {
+        if (isGrounded && timeSinceLastFlip > minSmokeFXTime) {
             smokeFX.Play();
         }
         timeSinceLastFlip = 0;
