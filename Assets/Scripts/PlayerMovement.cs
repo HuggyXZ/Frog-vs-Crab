@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -11,6 +12,7 @@ public class PlayerMovement : MonoBehaviour {
     public event EventHandler OnFlip;
     public event EventHandler OnStartMovingSameDirection;
     public event EventHandler OnPowerUp;
+    public event EventHandler OnPowerUpCounterUpdate;
 
     private Rigidbody2D myRigidBody;
 
@@ -63,16 +65,13 @@ public class PlayerMovement : MonoBehaviour {
     [Header("PowerUp")] // Add timer
     [SerializeField] private float powerUpSpeedIncrease = 5f;
     [SerializeField] private float powerUpJumpIncrease = 10f;
-    [SerializeField] private float powerUpTime = 15f;
-    private float powerUpTimer = 0f;
+    [SerializeField] private float powerUpTime = 10f;
+    private float powerUpCounter;
+    private bool isPoweredUp;
 
     private void Awake() {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
-    }
-
-    private void Start() {
-        HoldToPowerUp.OnHoldComplete += HoldToPowerUp_OnHoldComplete;
     }
 
     private void Update() {
@@ -257,11 +256,38 @@ public class PlayerMovement : MonoBehaviour {
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
     }
 
-    private void HoldToPowerUp_OnHoldComplete() {
-        OnPowerUp?.Invoke(this, EventArgs.Empty);
-        // Add timer
+    public void ActivatePowerUp() {
+        if (isPoweredUp) return; // prevent overlap
+
+        isPoweredUp = true;
         walkSpeed += powerUpSpeedIncrease;
         jumpPower += powerUpJumpIncrease;
+
+        OnPowerUp?.Invoke(this, EventArgs.Empty);
+
+        StartCoroutine(PowerUpDuration());
+    }
+
+    private IEnumerator PowerUpDuration() {
+        powerUpCounter = powerUpTime;
+        while (powerUpCounter > 0) {
+            powerUpCounter -= Time.deltaTime;
+            OnPowerUpCounterUpdate?.Invoke(this, EventArgs.Empty);
+            yield return null;
+        }
+
+        // Revert stats
+        walkSpeed -= powerUpSpeedIncrease;
+        jumpPower -= powerUpJumpIncrease;
+        isPoweredUp = false;
+    }
+
+    public float GetPowerUpTime() {
+        return powerUpTime;
+    }
+
+    public float GetPowerUpCounter() {
+        return powerUpCounter;
     }
 
     public float GetHorizontalSpeed() {

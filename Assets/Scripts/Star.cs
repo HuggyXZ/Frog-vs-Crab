@@ -6,7 +6,9 @@ public class Star : MonoBehaviour, IItem {
     [SerializeField] private int starValue = 5;
 
     public void Collect() {
-        OnStarCollect?.Invoke(starValue);
-        Destroy(gameObject);
+        if (GameManager.Instance.GetProgressAmount() < 100) {
+            OnStarCollect?.Invoke(starValue);
+            Destroy(gameObject);
+        }
     }
 }

@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class GameManager : MonoBehaviour {
     public static GameManager Instance { get; private set; }
 
+    public static event Action OnPowerUpReady;
+
     int progressAmount;
 
-    [SerializeField] GameObject LoadCanvas;
     [SerializeField] private Slider progressSlider;
 
     private void Awake() {
@@ -19,7 +21,6 @@ public class GameManager : MonoBehaviour {
 
         progressAmount = 0;
         progressSlider.value = 0;
-        LoadCanvas.SetActive(false);
     }
 
     private void Star_OnStarCollect(int starValue) {
@@ -27,15 +28,18 @@ public class GameManager : MonoBehaviour {
         progressSlider.value = progressAmount;
 
         if (progressAmount >= 100) {
-            LoadCanvas.SetActive(true);
+            OnPowerUpReady?.Invoke();
             Debug.Log("Power Up Ready");
         }
     }
 
     private void PlayerMovement_OnPowerUp(object sender, System.EventArgs e) {
-        LoadCanvas.SetActive(false);
         progressAmount = 0;
         progressSlider.value = 0;
+    }
+
+    public int GetProgressAmount() {
+        return progressAmount;
     }
 
     private void OnDestroy() {

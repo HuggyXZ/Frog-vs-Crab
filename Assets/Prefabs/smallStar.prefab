@@ -93,7 +93,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3567058110242702902}
   - component: {fileID: 7848520270984244009}
-  - component: {fileID: 9039559500215370236}
+  - component: {fileID: 2528963541475155862}
   m_Layer: 0
   m_Name: StarSprite
   m_TagString: Untagged
@@ -174,7 +174,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!95 &9039559500215370236
+--- !u!95 &2528963541475155862
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
@@ -184,7 +184,7 @@ Animator:
   m_GameObject: {fileID: 9023658716994869583}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 514d79e9a0217e948ab2c5871386dea5, type: 2}
+  m_Controller: {fileID: 9100000, guid: 097756773b4096f47bc5fef84f23bc87, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
