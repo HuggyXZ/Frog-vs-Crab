@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine.Tilemaps;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -15,9 +16,10 @@ public class PlayerMovement : MonoBehaviour {
     public event EventHandler OnPowerUpCounterUpdate;
 
     private Rigidbody2D myRigidBody;
+    private BoxCollider2D myBoxCollider;
 
     [Header("Movement")]
-    [SerializeField] private float walkSpeed = 10f;
+    [SerializeField] private float moveSpeed = 10f;
     private bool isMovingRight = true; // input direction for Flip()
     private bool isFacingRight = true;
     private float stopMovingTimer = 0f; // timer count up
@@ -37,11 +39,15 @@ public class PlayerMovement : MonoBehaviour {
     private bool isFalling;
 
     [Header("Ground Check")]
-    [SerializeField] private Transform groundCheck;
-    [SerializeField] private Vector2 groundCheckSize = new Vector2(0.7f, 0.05f);
+    [SerializeField] private Transform landCheck;
+    [SerializeField] private Vector2 landCheckSize = new Vector2(0.7f, 0.05f);
     [SerializeField] private LayerMask landLayer;
-    private bool isGrounded;
-    private bool wasGrounded;
+    private bool isOnLand;
+    private bool wasOnLand;
+    // Platform
+    [SerializeField] private CompositeCollider2D platformCollider;
+    private bool isOnPlatform;
+
 
     [Header("Wall Check")]
     [SerializeField] private Transform wallCheck;
@@ -52,7 +58,6 @@ public class PlayerMovement : MonoBehaviour {
     // Wall Slide
     [SerializeField] private float wallSlideSpeed = 3f;
     private bool isWallSliding;
-
     // Wall Jump
     private bool isWallJumping;       // request flag
     private bool wallJumpLock;        // persistent movement lock
@@ -63,7 +68,7 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
 
     [Header("PowerUp")] // Add timer
-    [SerializeField] private float powerUpSpeedIncrease = 5f;
+    [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
     [SerializeField] private float powerUpJumpIncrease = 10f;
     [SerializeField] private float powerUpTime = 10f;
     private float powerUpCounter;
@@ -72,11 +77,11 @@ public class PlayerMovement : MonoBehaviour {
     private void Awake() {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
+        myBoxCollider = GetComponent<BoxCollider2D>();
     }
 
     private void Update() {
         HandleJumpInput();
-        GroundCheck();
     }
 
     private void FixedUpdate() {
@@ -85,12 +90,17 @@ public class PlayerMovement : MonoBehaviour {
         ApplyFallGravity();
         ProcessWallSlide();
         ProcessWallJumpCoyote();
+        HandleDownInput();
 
         // normal movement only if not wall-jump locked
         if (!wallJumpLock) {
             HandleMovementInput();
             Flip();
         }
+
+        // Check physics-based states *after* movement
+        OnLandCheck();
+        PlatformCheck();
     }
 
     private void HandleJumpInput() {
@@ -100,7 +110,7 @@ public class PlayerMovement : MonoBehaviour {
             jumpRemaining--;
 
             // If not grounded then this is a air-jump
-            if (!isGrounded) {
+            if (!isOnLand) {
                 OnAirJump?.Invoke(this, EventArgs.Empty);
             }
             else {
@@ -149,7 +159,7 @@ public class PlayerMovement : MonoBehaviour {
     private void HandleMovementInput() {
         // Moving right
         if (GameInput.Instance.IsRightActionPressed()) {
-            myRigidBody.linearVelocityX = walkSpeed;
+            myRigidBody.linearVelocityX = moveSpeed;
             isMovingRight = true;
 
             if (stopMovingTimer >= stopMovingThreshold) {
@@ -159,7 +169,7 @@ public class PlayerMovement : MonoBehaviour {
         }
         // Moving left
         else if (GameInput.Instance.IsLeftActionPressed()) {
-            myRigidBody.linearVelocityX = -walkSpeed;
+            myRigidBody.linearVelocityX = -moveSpeed;
             isMovingRight = false;
 
             if (stopMovingTimer >= stopMovingThreshold) {
@@ -176,7 +186,7 @@ public class PlayerMovement : MonoBehaviour {
 
     private void ProcessWallSlide() {
         // Slide only when airborne and touching a wall
-        if (!wasGrounded && WallCheck() &&
+        if (!wasOnLand && WallCheck() &&
             (GameInput.Instance.IsLeftActionPressed() || GameInput.Instance.IsRightActionPressed())) {
             isWallSliding = true;
 
@@ -204,9 +214,23 @@ public class PlayerMovement : MonoBehaviour {
         wallJumpLock = false;
     }
 
+    private void HandleDownInput() {
+        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
+            StartCoroutine(DisablePlatformCollision());
+            Debug.Log("Disable Platform Collision");
+        }
+    }
+
+    private IEnumerator DisablePlatformCollision() {
+        float dropDuration = 0.4f;
+        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
+        yield return new WaitForSeconds(dropDuration);
+        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
+    }
+
     private void ApplyFallGravity() {
         // stronger gravity while falling
-        if (myRigidBody.linearVelocityY < 0f && !isGrounded && !isWallSliding) {
+        if (myRigidBody.linearVelocityY < 0f && !isOnLand && !isWallSliding) {
             isFalling = true;
             // apply fall multiplier
             myRigidBody.gravityScale = baseGravity * fallMultiplier;
@@ -224,14 +248,25 @@ public class PlayerMovement : MonoBehaviour {
         return Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, wallLayer);
     }
 
-    private void GroundCheck() {
-        isGrounded = Physics2D.OverlapBox(groundCheck.position, groundCheckSize, 0f, landLayer);
+    private void OnLandCheck() {
+        isOnLand = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, landLayer);
 
-        if (isGrounded && !wasGrounded) {
+        if (isOnLand && !wasOnLand) {
             jumpRemaining = maxJumpCount;
             OnLanded?.Invoke(this, EventArgs.Empty);
         }
-        wasGrounded = isGrounded;
+        wasOnLand = isOnLand;
+    }
+
+    private void PlatformCheck() {
+        Collider2D landTouching = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, landLayer);
+        if (landTouching && landTouching.gameObject.TryGetComponent(out Platform platform)) {
+            isOnPlatform = true;
+            Debug.Log("On Platform");
+        }
+        else {
+            isOnPlatform = false;
+        }
     }
 
     private void Flip() {
@@ -250,7 +285,7 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnDrawGizmosSelected() {
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(groundCheck.position, groundCheckSize);
+        Gizmos.DrawWireCube(landCheck.position, landCheckSize);
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
@@ -260,7 +295,7 @@ public class PlayerMovement : MonoBehaviour {
         if (isPoweredUp) return; // prevent overlap
 
         isPoweredUp = true;
-        walkSpeed += powerUpSpeedIncrease;
+        moveSpeed += powerUpMoveSpeedIncrease;
         jumpPower += powerUpJumpIncrease;
 
         OnPowerUp?.Invoke(this, EventArgs.Empty);
@@ -277,7 +312,7 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         // Revert stats
-        walkSpeed -= powerUpSpeedIncrease;
+        moveSpeed -= powerUpMoveSpeedIncrease;
         jumpPower -= powerUpJumpIncrease;
         isPoweredUp = false;
     }
@@ -294,8 +329,8 @@ public class PlayerMovement : MonoBehaviour {
         return Mathf.Abs(myRigidBody.linearVelocityX);
     }
 
-    public bool GetIsGrounded() {
-        return isGrounded;
+    public bool GetIsOnLand() {
+        return isOnLand;
     }
 
     public bool GetIsFalling() {

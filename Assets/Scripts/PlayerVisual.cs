@@ -31,7 +31,7 @@ public class PlayerVisual : MonoBehaviour {
     private void LateUpdate() {
         // Update animator AFTER physics (FixedUpdate) so velocity values are up-to-date
         animator.SetFloat("horizontalSpeed", PlayerMovement.Instance.GetHorizontalSpeed());
-        animator.SetBool("isGrounded", PlayerMovement.Instance.GetIsGrounded());
+        animator.SetBool("isOnLand", PlayerMovement.Instance.GetIsOnLand());
         animator.SetBool("isFalling", PlayerMovement.Instance.GetIsFalling());
         animator.SetBool("isWallSliding", PlayerMovement.Instance.GetIsWallSliding());
     }
@@ -53,7 +53,7 @@ public class PlayerVisual : MonoBehaviour {
     }
 
     private void Player_OnFlip(object sender, System.EventArgs e) {
-        bool isGrounded = PlayerMovement.Instance.GetIsGrounded();
+        bool isGrounded = PlayerMovement.Instance.GetIsOnLand();
         if (isGrounded && timeSinceLastFlip > minSmokeFXTime) {
             smokeFX.Play();
         }

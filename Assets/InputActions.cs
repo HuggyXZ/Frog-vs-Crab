@@ -120,6 +120,15 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""MoveDown"",
+                    ""type"": ""Button"",
+                    ""id"": ""e635df13-db9d-4136-960a-de398d8e9c1e"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Hold"",
                     ""type"": ""Button"",
                     ""id"": ""342a81cd-8918-4f57-988f-6fbffcdc6c40"",
@@ -195,6 +204,28 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Hold"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c669d4c7-4c8e-435d-ad15-333c1e07039b"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c2757234-500c-4636-b9ef-c38a40941cf5"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveDown"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -206,6 +237,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         m_Player_MoveRight = m_Player.FindAction("MoveRight", throwIfNotFound: true);
         m_Player_MoveLeft = m_Player.FindAction("MoveLeft", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
+        m_Player_MoveDown = m_Player.FindAction("MoveDown", throwIfNotFound: true);
         m_Player_Hold = m_Player.FindAction("Hold", throwIfNotFound: true);
     }
 
@@ -290,6 +322,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_MoveRight;
     private readonly InputAction m_Player_MoveLeft;
     private readonly InputAction m_Player_Jump;
+    private readonly InputAction m_Player_MoveDown;
     private readonly InputAction m_Player_Hold;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
@@ -314,6 +347,10 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Jump".
         /// </summary>
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/MoveDown".
+        /// </summary>
+        public InputAction @MoveDown => m_Wrapper.m_Player_MoveDown;
         /// <summary>
         /// Provides access to the underlying input action "Player/Hold".
         /// </summary>
@@ -353,6 +390,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
+            @MoveDown.started += instance.OnMoveDown;
+            @MoveDown.performed += instance.OnMoveDown;
+            @MoveDown.canceled += instance.OnMoveDown;
             @Hold.started += instance.OnHold;
             @Hold.performed += instance.OnHold;
             @Hold.canceled += instance.OnHold;
@@ -376,6 +416,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
+            @MoveDown.started -= instance.OnMoveDown;
+            @MoveDown.performed -= instance.OnMoveDown;
+            @MoveDown.canceled -= instance.OnMoveDown;
             @Hold.started -= instance.OnHold;
             @Hold.performed -= instance.OnHold;
             @Hold.canceled -= instance.OnHold;
@@ -440,6 +483,13 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnJump(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "MoveDown" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnMoveDown(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Hold" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

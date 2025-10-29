@@ -34,6 +34,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "MoveDown",
+                    "type": "Button",
+                    "id": "e635df13-db9d-4136-960a-de398d8e9c1e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Hold",
                     "type": "Button",
                     "id": "342a81cd-8918-4f57-988f-6fbffcdc6c40",
@@ -107,6 +116,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Hold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c669d4c7-4c8e-435d-ad15-333c1e07039b",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveDown",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c2757234-500c-4636-b9ef-c38a40941cf5",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MoveDown",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
