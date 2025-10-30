@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using UnityEngine.Tilemaps;
+using Unity.VisualScripting;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -38,20 +39,22 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float fallMultiplier = 3f;
     private bool isFalling;
 
-    [Header("Ground Check")]
+    [Header("Land Check")]
     [SerializeField] private Transform landCheck;
-    [SerializeField] private Vector2 landCheckSize = new Vector2(0.7f, 0.05f);
+    [SerializeField] private Vector2 landCheckSize = new Vector2(1f, 0.025f);
     [SerializeField] private LayerMask landLayer;
     private bool isOnLand;
     private bool wasOnLand;
+
     // Platform
+    [SerializeField] private LayerMask platformLayer;
     [SerializeField] private CompositeCollider2D platformCollider;
     private bool isOnPlatform;
 
 
     [Header("Wall Check")]
     [SerializeField] private Transform wallCheck;
-    [SerializeField] private Vector2 wallCheckSize = new Vector2(0.05f, 1.5f);
+    [SerializeField] private Vector2 wallCheckSize = new Vector2(0.025f, 1.55f);
     [SerializeField] private LayerMask wallLayer;
 
     [Header("Wall Movement")]
@@ -70,7 +73,8 @@ public class PlayerMovement : MonoBehaviour {
     [Header("PowerUp")] // Add timer
     [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
     [SerializeField] private float powerUpJumpIncrease = 10f;
-    [SerializeField] private float powerUpTime = 10f;
+    [SerializeField] private int powerUpMaxJumpIncrease = 1;
+    [SerializeField] private float powerUpTime = 15f;
     private float powerUpCounter;
     private bool isPoweredUp;
 
@@ -215,9 +219,8 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void HandleDownInput() {
-        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
+        if (GameInput.Instance.IsDownActionPressed() && PlatformCheck()) {
             StartCoroutine(DisablePlatformCollision());
-            Debug.Log("Disable Platform Collision");
         }
     }
 
@@ -226,6 +229,23 @@ public class PlayerMovement : MonoBehaviour {
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
         yield return new WaitForSeconds(dropDuration);
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
+    }
+
+    private void OnLandCheck() {
+        isOnLand = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, landLayer);
+
+        if (isOnLand && !wasOnLand) {
+            jumpRemaining = maxJumpCount;
+            OnLanded?.Invoke(this, EventArgs.Empty);
+        }
+        wasOnLand = isOnLand;
+    }
+    private bool WallCheck() {
+        return Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, wallLayer);
+    }
+
+    private bool PlatformCheck() {
+        return Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, platformLayer);
     }
 
     private void ApplyFallGravity() {
@@ -242,31 +262,6 @@ public class PlayerMovement : MonoBehaviour {
         }
         // limit max fall speed
         myRigidBody.linearVelocityY = Mathf.Max(myRigidBody.linearVelocityY, -maxFallSpeed);
-    }
-
-    private bool WallCheck() {
-        return Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, wallLayer);
-    }
-
-    private void OnLandCheck() {
-        isOnLand = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, landLayer);
-
-        if (isOnLand && !wasOnLand) {
-            jumpRemaining = maxJumpCount;
-            OnLanded?.Invoke(this, EventArgs.Empty);
-        }
-        wasOnLand = isOnLand;
-    }
-
-    private void PlatformCheck() {
-        Collider2D landTouching = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, landLayer);
-        if (landTouching && landTouching.gameObject.TryGetComponent(out Platform platform)) {
-            isOnPlatform = true;
-            Debug.Log("On Platform");
-        }
-        else {
-            isOnPlatform = false;
-        }
     }
 
     private void Flip() {
@@ -297,6 +292,7 @@ public class PlayerMovement : MonoBehaviour {
         isPoweredUp = true;
         moveSpeed += powerUpMoveSpeedIncrease;
         jumpPower += powerUpJumpIncrease;
+        maxJumpCount += powerUpMaxJumpIncrease;
 
         OnPowerUp?.Invoke(this, EventArgs.Empty);
 
@@ -314,6 +310,7 @@ public class PlayerMovement : MonoBehaviour {
         // Revert stats
         moveSpeed -= powerUpMoveSpeedIncrease;
         jumpPower -= powerUpJumpIncrease;
+        maxJumpCount -= powerUpMaxJumpIncrease;
         isPoweredUp = false;
     }
 
