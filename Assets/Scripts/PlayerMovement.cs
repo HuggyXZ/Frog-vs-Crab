@@ -308,6 +308,7 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         // Revert stats
+        powerUpCounter = 0;
         moveSpeed -= powerUpMoveSpeedIncrease;
         jumpPower -= powerUpJumpIncrease;
         maxJumpCount -= powerUpMaxJumpIncrease;

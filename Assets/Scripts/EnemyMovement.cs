@@ -57,7 +57,6 @@ public class EnemyMovement : MonoBehaviour {
 
         // Calculate distance to player
         float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
-        Debug.Log(distanceToPlayer);
 
         // Stop moving if player is too far
         if (distanceToPlayer > chaseRange) {

@@ -3,13 +3,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class HoldToPowerUp : MonoBehaviour {
-    //public static event Action OnHoldComplete;
 
-    public Image fillCircle;
+    [SerializeField] private Image fillCircle;
+    [SerializeField] private RectTransform fillCircleRectTransform;
 
     private bool canHold = false;
-    public float holdTime = 1; // How long to hold to activate
+    [SerializeField] private float holdTime = 1; // How long to hold to activate
     private float holdTimer;
+
+    private Transform playerTransform;
 
     private void Start() {
         GameManager.OnPowerUpReady += GameManager_OnPowerUpReady;
@@ -18,21 +20,26 @@ public class HoldToPowerUp : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
+        playerTransform = PlayerMovement.Instance.transform;
+        gameObject.transform.position = playerTransform.position;
         HandleHoldInput();
     }
 
     private void HandleHoldInput() {
-        if (!canHold) {
-            return;
-        }
+        if (PlayerMovement.Instance.GetPowerUpCounter() > 0 || !canHold) return;
+
         if (GameInput.Instance.IsHoldActionPressed()) {
+            fillCircleRectTransform.localScale = Vector3.one;
+
             holdTimer += Time.deltaTime;
             fillCircle.fillAmount = holdTimer / holdTime;
 
             if (holdTimer >= holdTime) {
+                fillCircle.fillAmount = 1;
+                fillCircleRectTransform.localScale = new Vector3(-1, 1, 1);
+
                 PlayerMovement.Instance.ActivatePowerUp();
                 holdTimer = 0;
-                fillCircle.fillAmount = 0;
                 canHold = false;
             }
         }
