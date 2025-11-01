@@ -44,5 +44,6 @@ public class GameManager : MonoBehaviour {
 
     private void OnDestroy() {
         Star.OnStarCollect -= Star_OnStarCollect;
+        PlayerMovement.Instance.OnPowerUp -= PlayerMovement_OnPowerUp;
     }
 }

@@ -3,10 +3,9 @@ using System.Collections;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour {
-    public static EnemyStats Instance { get; private set; }
-
     public event EventHandler OnAttackPlayer;
-    public event EventHandler OnPlayerHit;
+
+    private EnemyMovement enemyMovement;
 
     [SerializeField] private int damage = 1;
     [SerializeField] private int health = 100;
@@ -16,9 +15,10 @@ public class EnemyStats : MonoBehaviour {
     [SerializeField] private Vector2 sideCheckSize = new Vector2(2f, 2f);
 
     private bool playerSideCheck;
+    private bool canAttack = true;
 
     private void Awake() {
-        Instance = this;
+        enemyMovement = GetComponent<EnemyMovement>();
     }
 
     private void Update() {
@@ -28,9 +28,17 @@ public class EnemyStats : MonoBehaviour {
     private void OnSideCheck() {
         playerSideCheck = Physics2D.OverlapBox(sidecheck.position, sideCheckSize, 0f, playerLayer);
 
-        if (playerSideCheck && !EnemyMovement.Instance.GetStopMoving()) {
+        if (playerSideCheck && canAttack) {
             OnAttackPlayer?.Invoke(this, EventArgs.Empty);
+            StartCoroutine(AttackCooldown());
         }
+    }
+
+    private IEnumerator AttackCooldown() {
+        float attackCooldown = 1f; // time between damage ticks
+        canAttack = false;
+        yield return new WaitForSeconds(attackCooldown);
+        canAttack = true;
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
@@ -42,11 +50,11 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void TryDamagePlayer(Collision2D collision) {
-        if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && !EnemyMovement.Instance.GetStopMoving()) {
+        if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && !enemyMovement.GetStopMoving()) {
             PlayerMovement.Instance.OnHitByEnemy(transform.position);
-            OnPlayerHit?.Invoke(this, EventArgs.Empty);
+            PlayerVisual.Instance.OnPlayerHit();
             playerHealth.TakeDamge(damage);
-            StartCoroutine(EnemyMovement.Instance.StopMoving());
+            enemyMovement.StartCoroutine(enemyMovement.StopMoving());
         }
     }
 

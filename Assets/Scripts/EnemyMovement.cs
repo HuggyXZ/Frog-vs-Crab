@@ -2,12 +2,11 @@ using System.Collections;
 using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour {
-    public static EnemyMovement Instance { get; private set; }
-    private Rigidbody2D myRigidBody;
+    private Rigidbody2D myRigidBody; ////////////////// Enemy move down when player is down, move down on platform
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float jumpPower = 15f;
+    [SerializeField] private float jumpPower = 25f;
     [SerializeField] private float chaseRange = 15f; // how far the enemy can detect/chase the player
     float distanceToPlayer;
 
@@ -32,10 +31,10 @@ public class EnemyMovement : MonoBehaviour {
     private bool isOnLand;
     private bool isPlayerAbove;
     private bool shouldJump;
+    private bool isJumping;
     private bool stopMoving;
 
     void Awake() {
-        Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
     }
 
@@ -44,10 +43,12 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        HandleGroundMovement();
-        DecideJump();
-        ApplyJump();
-        Flip();
+        if (!stopMoving && !isJumping) {
+            HandleGroundMovement();
+            DecideJump();
+            ApplyJump();
+            Flip();
+        }
 
         OnLandCheck();
     }
@@ -57,7 +58,7 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void HandleGroundMovement() {
-        if (!isOnLand || shouldJump || isPlayerAbove || stopMoving) return;
+        if (!isOnLand || shouldJump || isPlayerAbove) return;
 
         // Calculate distance to player
         distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
@@ -83,7 +84,7 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void DecideJump() {
-        if (!isOnLand || shouldJump || stopMoving) return;
+        if (!isOnLand || shouldJump) return;
 
         // Stop moving if player is too far
         if (distanceToPlayer > chaseRange) {
@@ -117,14 +118,28 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void ApplyJump() {
-        if (isOnLand && shouldJump) {
+        if (isOnLand && shouldJump && !isJumping) {
             shouldJump = false;
+            Debug.Log("isOnLand: " + isOnLand);
+            Debug.Log("Jump!");
 
-            // Use .normalized if you need the enemy to chase in both X and Y directions
-            // or if you’re implementing diagonal movement toward the player.
+            if (isPlayerAbove) {
+                myRigidBody.linearVelocity = new Vector2(0f, jumpPower);
+            }
+            else {
+                float sideJumpPower = 15f;
 
-            myRigidBody.linearVelocity = new Vector2(direction * moveSpeed, jumpPower);
+                myRigidBody.linearVelocity = new Vector2(direction * sideJumpPower, jumpPower);
+            }
+            StartCoroutine(JumpCooldown());
         }
+    }
+
+    private IEnumerator JumpCooldown() {
+        float jumpCooldown = 1f;
+        isJumping = true;
+        yield return new WaitForSeconds(jumpCooldown);
+        isJumping = false;
     }
 
     private void Flip() {

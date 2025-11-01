@@ -24,8 +24,6 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnLanded += Player_OnLanded;
         PlayerMovement.Instance.OnFlip += Player_OnFlip;
         PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
-
-        EnemyStats.Instance.OnPlayerHit += EnemyStats_OnPlayerHit;
     }
 
     // Update is called once per frame
@@ -73,16 +71,24 @@ public class PlayerVisual : MonoBehaviour {
         smokeFX.Play();
     }
 
-    private void EnemyStats_OnPlayerHit(object sender, System.EventArgs e) {
+    public void OnPlayerHit() {
         animator.SetTrigger("hitTrigger");
         StartCoroutine(FlashRed());
     }
 
-    public IEnumerator FlashRed() {
+    private IEnumerator FlashRed() {
         spriteRenderer.color = Color.indianRed;
 
         float flashDuration = 0.5f;
         yield return new WaitForSeconds(flashDuration);
         spriteRenderer.color = Color.white;
+    }
+
+    private void OnDestroy() {
+        PlayerMovement.Instance.OnJump -= Player_OnJump;
+        PlayerMovement.Instance.OnAirJump -= Player_OnAirJump;
+        PlayerMovement.Instance.OnWallJump -= Player_OnWallJump;
+        PlayerMovement.Instance.OnLanded -= Player_OnLanded;
+        PlayerMovement.Instance.OnFlip -= Player_OnFlip;
     }
 }

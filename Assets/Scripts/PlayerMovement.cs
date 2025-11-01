@@ -100,19 +100,20 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void FixedUpdate() {
-        if (!canMove) return; // movement locked during knockback
+        // movement locked during knockback
+        if (canMove) {
+            ApplyJump();
+            ApplyWallJump();
+            ApplyFallGravity();
+            ProcessWallSlide();
+            ProcessWallJumpCoyote();
+            HandleDownInput();
 
-        ApplyJump();
-        ApplyWallJump();
-        ApplyFallGravity();
-        ProcessWallSlide();
-        ProcessWallJumpCoyote();
-        HandleDownInput();
-
-        // normal movement only if not wall-jump locked
-        if (!wallJumpLock) {
-            HandleMovementInput();
-            Flip();
+            // normal movement only if not wall-jump locked
+            if (!wallJumpLock) {
+                HandleMovementInput();
+                Flip();
+            }
         }
 
         // Check physics-based states *after* movement
