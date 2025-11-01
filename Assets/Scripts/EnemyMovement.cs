@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour {
@@ -8,7 +9,11 @@ public class EnemyMovement : MonoBehaviour {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpPower = 15f;
     [SerializeField] private float chaseRange = 15f; // how far the enemy can detect/chase the player
+    float distanceToPlayer;
+
     private float direction;
+    private bool isMovingRight = true; // input direction for Flip()
+    private bool isFacingRight = true;
 
     [Header("Checks")]
     [SerializeField] private float playerAboveCheckDistance = 15f;
@@ -19,14 +24,15 @@ public class EnemyMovement : MonoBehaviour {
     [Header("References & Layers")]
     private Transform playerTransform;
     [SerializeField] private LayerMask playerLayer;
+    [SerializeField] private LayerMask platformLayer;
+    [SerializeField] private LayerMask landLayer;
     [SerializeField] private Transform landCheck;
     [SerializeField] private Vector2 landCheckSize = new Vector2(2f, 0.025f);
-    [SerializeField] private LayerMask landLayer;
-    [SerializeField] private LayerMask platformLayer;
 
     private bool isOnLand;
     private bool isPlayerAbove;
     private bool shouldJump;
+    private bool stopMoving;
 
     void Awake() {
         Instance = this;
@@ -34,14 +40,17 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void Start() {
+        EnemyStats.Instance.OnPlayerHit += EnemyStats_OnPlayerHit;
         playerTransform = PlayerMovement.Instance.transform;
     }
 
     // Update is called once per frame
     private void Update() {
-        OnLandCheck();
         HandleGroundMovement();
         HandleJump();
+        Flip();
+
+        OnLandCheck();
     }
 
     private void FixedUpdate() {
@@ -53,10 +62,10 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void HandleGroundMovement() {
-        if (!isOnLand || shouldJump) return;
+        if (!isOnLand || shouldJump || isPlayerAbove || stopMoving) return;
 
         // Calculate distance to player
-        float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+        distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
 
         // Stop moving if player is too far
         if (distanceToPlayer > chaseRange) {
@@ -64,17 +73,29 @@ public class EnemyMovement : MonoBehaviour {
             return;
         }
 
-        // Stop if player is above
-        if (isPlayerAbove) return;
-
         // Move toward the player
         // Use Mathf.Sign for simple horizontal chasing (most cases)
         direction = Mathf.Sign(playerTransform.position.x - transform.position.x); // return -1 or 1 depending on direction
         myRigidBody.linearVelocityX = moveSpeed * direction; // chase player
+
+        // Flip character
+        if (direction < 0f) {
+            isMovingRight = false;
+        }
+        else if (direction > 0f) {
+            isMovingRight = true;
+        }
     }
 
     private void HandleJump() {
-        if (!isOnLand || shouldJump) return;
+        if (!isOnLand || shouldJump || stopMoving) return;
+
+        // Stop moving if player is too far
+        if (distanceToPlayer > chaseRange) {
+            myRigidBody.linearVelocityX = 0f;
+            return;
+        }
+
         // Player above detection
         isPlayerAbove = Physics2D.Raycast(transform.position, Vector2.up, playerAboveCheckDistance, playerLayer);
 
@@ -91,7 +112,11 @@ public class EnemyMovement : MonoBehaviour {
         if (!hasLandInFront && hasGapAhead) {
             shouldJump = true;
         }
-        else if (isPlayerAbove && hasPlatformAbove) {
+        else if (isPlayerAbove && hasPlatformAbove && PlayerMovement.Instance.GetIsOnPlatform()) {
+            shouldJump = true;
+        }
+
+        else if (isPlayerAbove && PlayerMovement.Instance.GetIsOnWall()) {
             shouldJump = true;
         }
     }
@@ -105,6 +130,29 @@ public class EnemyMovement : MonoBehaviour {
             Vector2 direction = (playerTransform.position - transform.position).normalized; // return -1 or 1 depending on direction
             myRigidBody.linearVelocity = new Vector2(direction.x * moveSpeed, jumpPower);
         }
+    }
+
+    private void Flip() {
+        if (isMovingRight && !isFacingRight) FlipCharacter(true);
+        else if (!isMovingRight && isFacingRight) FlipCharacter(false);
+    }
+
+    private void FlipCharacter(bool faceRight) {
+        isFacingRight = faceRight;
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (faceRight ? 1f : -1f);
+        transform.localScale = scale;
+    }
+
+    private void EnemyStats_OnPlayerHit(object sender, System.EventArgs e) {
+        StartCoroutine(StopMoving());
+    }
+
+    private IEnumerator StopMoving() {
+        stopMoving = true;
+        float stopDuration = 2f;
+        yield return new WaitForSeconds(stopDuration);
+        stopMoving = false;
     }
 
     private void OnDrawGizmosSelected() {
@@ -126,4 +174,6 @@ public class EnemyMovement : MonoBehaviour {
     public float GetHorizontalSpeed() {
         return Mathf.Abs(myRigidBody.linearVelocityX);
     }
+
+    public bool GetStopMoving() { return stopMoving; }
 }

@@ -1,8 +1,6 @@
 using UnityEngine;
 using System;
 using System.Collections;
-using UnityEngine.Tilemaps;
-using Unity.VisualScripting;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -56,6 +54,7 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private Transform wallCheck;
     [SerializeField] private Vector2 wallCheckSize = new Vector2(0.025f, 1.55f);
     [SerializeField] private LayerMask wallLayer;
+    private bool isOnWall;
 
     [Header("Wall Movement")]
     // Wall Slide
@@ -68,7 +67,7 @@ public class PlayerMovement : MonoBehaviour {
     private float wallJumpCoyoteCounter; // counter count down
     [SerializeField] private float wallJumpCoyoteTime = 0.1f; // duration of be able to wall jump after leaving wall
     [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
-    [SerializeField] private Vector2 wallJumpPower = new Vector2(10f, 30f);
+    [SerializeField] private Vector2 wallJumpPower;
 
     [Header("PowerUp")] // Add timer
     [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
@@ -82,6 +81,10 @@ public class PlayerMovement : MonoBehaviour {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
         myBoxCollider = GetComponent<BoxCollider2D>();
+    }
+
+    private void Start() {
+        jumpRemaining = maxJumpCount;
     }
 
     private void Update() {
@@ -104,6 +107,7 @@ public class PlayerMovement : MonoBehaviour {
 
         // Check physics-based states *after* movement
         OnLandCheck();
+        WallCheck();
         PlatformCheck();
     }
 
@@ -155,7 +159,7 @@ public class PlayerMovement : MonoBehaviour {
         isMovingRight = wallJumpDirection > 0f;
 
         // Apply jump velocity
-        myRigidBody.linearVelocity = new Vector2(wallJumpDirection * wallJumpPower.x, wallJumpPower.y);
+        myRigidBody.linearVelocity = new Vector2(wallJumpDirection * moveSpeed, jumpPower);
 
         isWallJumping = false;
     }
@@ -190,7 +194,7 @@ public class PlayerMovement : MonoBehaviour {
 
     private void ProcessWallSlide() {
         // Slide only when airborne and touching a wall
-        if (!wasOnLand && WallCheck() &&
+        if (!wasOnLand && isOnWall &&
             (GameInput.Instance.IsLeftActionPressed() || GameInput.Instance.IsRightActionPressed())) {
             isWallSliding = true;
 
@@ -219,7 +223,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void HandleDownInput() {
-        if (GameInput.Instance.IsDownActionPressed() && PlatformCheck()) {
+        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
             StartCoroutine(DisablePlatformCollision());
         }
     }
@@ -240,12 +244,12 @@ public class PlayerMovement : MonoBehaviour {
         }
         wasOnLand = isOnLand;
     }
-    private bool WallCheck() {
-        return Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, wallLayer);
+    private void WallCheck() {
+        isOnWall = Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, wallLayer);
     }
 
-    private bool PlatformCheck() {
-        return Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, platformLayer);
+    public void PlatformCheck() {
+        isOnPlatform = Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, platformLayer);
     }
 
     private void ApplyFallGravity() {
@@ -278,14 +282,6 @@ public class PlayerMovement : MonoBehaviour {
         OnFlip?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnDrawGizmosSelected() {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(landCheck.position, landCheckSize);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
-    }
-
     public void ActivatePowerUp() {
         if (isPoweredUp) return; // prevent overlap
 
@@ -315,27 +311,24 @@ public class PlayerMovement : MonoBehaviour {
         isPoweredUp = false;
     }
 
-    public float GetPowerUpTime() {
-        return powerUpTime;
+    private void OnDrawGizmosSelected() {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(landCheck.position, landCheckSize);
+
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
     }
 
-    public float GetPowerUpCounter() {
-        return powerUpCounter;
-    }
+    public float GetPowerUpTime() { return powerUpTime; }
+    public float GetPowerUpCounter() { return powerUpCounter; }
 
     public float GetHorizontalSpeed() {
         return Mathf.Abs(myRigidBody.linearVelocityX);
     }
 
-    public bool GetIsOnLand() {
-        return isOnLand;
-    }
-
-    public bool GetIsFalling() {
-        return isFalling;
-    }
-
-    public bool GetIsWallSliding() {
-        return isWallSliding;
-    }
+    public bool GetIsOnLand() { return isOnLand; }
+    public bool GetIsOnPlatform() { return isOnPlatform; }
+    public bool GetIsOnWall() { return isOnWall; }
+    public bool GetIsFalling() { return isFalling; }
+    public bool GetIsWallSliding() { return isWallSliding; }
 }

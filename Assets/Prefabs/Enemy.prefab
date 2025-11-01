@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1295116973
-  m_SortingLayer: -1
+  m_SortingLayer: -3
   m_SortingOrder: 0
   m_Sprite: {fileID: 7979084967657331261, guid: f3021cc7c69525c4387cd0efa5b7bfe2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -113,6 +113,37 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &840752967848675507
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 741182215310753281}
+  m_Layer: 0
+  m_Name: SideCheck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &741182215310753281
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 840752967848675507}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2491735273160251544}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4533995753974117757
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,6 +157,7 @@ GameObject:
   - component: {fileID: 2472337351712673457}
   - component: {fileID: 6024679379043331139}
   - component: {fileID: 9215415513547801822}
+  - component: {fileID: 4530770302446543182}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -148,6 +180,7 @@ Transform:
   m_Children:
   - {fileID: 4323616409648948125}
   - {fileID: 2884067542669801038}
+  - {fileID: 741182215310753281}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &1649725320128505228
@@ -245,14 +278,14 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
-  landCheck: {fileID: 2884067542669801038}
-  landCheckSize: {x: 2.05, y: 0.025}
-  landLayer:
-    serializedVersion: 2
-    m_Bits: 136
   platformLayer:
     serializedVersion: 2
     m_Bits: 128
+  landLayer:
+    serializedVersion: 2
+    m_Bits: 136
+  landCheck: {fileID: 2884067542669801038}
+  landCheckSize: {x: 2.05, y: 0.025}
 --- !u!114 &9215415513547801822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -266,6 +299,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   animator: {fileID: 8923980587125800445}
+--- !u!114 &4530770302446543182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4533995753974117757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c211951d5114e154294d7b9dd8e498be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
+  damage: 1
+  health: 100
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  sidecheck: {fileID: 741182215310753281}
+  sideCheckSize: {x: 2, y: 2}
 --- !u!1 &6755897466424369098
 GameObject:
   m_ObjectHideFlags: 0

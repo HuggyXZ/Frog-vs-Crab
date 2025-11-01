@@ -8,7 +8,8 @@ public class ObjectSpawner : MonoBehaviour {
 
     [SerializeField] private enum ObjectType { SmallStar, BigStar, Enemy }
 
-    [SerializeField] private Tilemap landTilemap;
+    [SerializeField] private Tilemap groundTilemap;
+    [SerializeField] private Tilemap platformTilemap;
     [SerializeField] private GameObject[] objectPrefabs; // 0 = SmallStar, 1 = BigStar, 2 = Enemy
     [SerializeField] private float bigStarProbability = 0.2f; // 20% chance of spawning big star
     [SerializeField] private float enemyProbability = 0.1f;
@@ -107,16 +108,24 @@ public class ObjectSpawner : MonoBehaviour {
 
     private void GatherSpawnPositions() {
         validSpawnPositions.Clear();
-        BoundsInt boundsInt = landTilemap.cellBounds;
-        TileBase[] allTiles = landTilemap.GetTilesBlock(boundsInt);
-        Vector3 start = landTilemap.CellToWorld(new Vector3Int(boundsInt.xMin, boundsInt.yMin, 0));
+
+        AddTilemapPositions(groundTilemap);
+        AddTilemapPositions(platformTilemap);
+    }
+
+    private void AddTilemapPositions(Tilemap tilemap) {
+        BoundsInt boundsInt = tilemap.cellBounds;
+        TileBase[] allTiles = tilemap.GetTilesBlock(boundsInt);
+        Vector3 start = tilemap.CellToWorld(new Vector3Int(boundsInt.xMin, boundsInt.yMin, 0));
 
         for (int x = 0; x < boundsInt.size.x; x++) {
             for (int y = 0; y < boundsInt.size.y; y++) {
                 TileBase tile = allTiles[x + y * boundsInt.size.x];
                 if (tile != null) {
-                    // x + 0.5f and y + 2f to be in the middle of the tile
-                    Vector3 place = start + new Vector3(x + 0.5f, y + 2f, 0);
+                    float xOffset = 0.5f;
+                    float yOffset = 2f;
+                    // Adjust y + 2f if needed to match platform height visually
+                    Vector3 place = start + new Vector3(x + xOffset, y + yOffset, 0);
                     validSpawnPositions.Add(place);
                 }
             }
