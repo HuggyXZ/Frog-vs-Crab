@@ -40,21 +40,16 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void Start() {
-        EnemyStats.Instance.OnPlayerHit += EnemyStats_OnPlayerHit;
         playerTransform = PlayerMovement.Instance.transform;
     }
 
-    // Update is called once per frame
-    private void Update() {
+    private void FixedUpdate() {
         HandleGroundMovement();
-        HandleJump();
+        DecideJump();
+        ApplyJump();
         Flip();
 
         OnLandCheck();
-    }
-
-    private void FixedUpdate() {
-        ApplyJump();
     }
 
     private void OnLandCheck() {
@@ -87,7 +82,7 @@ public class EnemyMovement : MonoBehaviour {
         }
     }
 
-    private void HandleJump() {
+    private void DecideJump() {
         if (!isOnLand || shouldJump || stopMoving) return;
 
         // Stop moving if player is too far
@@ -110,14 +105,14 @@ public class EnemyMovement : MonoBehaviour {
 
         // Jump conditions
         if (!hasLandInFront && hasGapAhead) {
-            shouldJump = true;
+            shouldJump = true; // jump for gap
         }
         else if (isPlayerAbove && hasPlatformAbove && PlayerMovement.Instance.GetIsOnPlatform()) {
-            shouldJump = true;
+            shouldJump = true; // jump for platform
         }
 
         else if (isPlayerAbove && PlayerMovement.Instance.GetIsOnWall()) {
-            shouldJump = true;
+            shouldJump = true; // jump for player on wall
         }
     }
 
@@ -127,8 +122,8 @@ public class EnemyMovement : MonoBehaviour {
 
             // Use .normalized if you need the enemy to chase in both X and Y directions
             // or if you’re implementing diagonal movement toward the player.
-            Vector2 direction = (playerTransform.position - transform.position).normalized; // return -1 or 1 depending on direction
-            myRigidBody.linearVelocity = new Vector2(direction.x * moveSpeed, jumpPower);
+
+            myRigidBody.linearVelocity = new Vector2(direction * moveSpeed, jumpPower);
         }
     }
 
@@ -144,13 +139,9 @@ public class EnemyMovement : MonoBehaviour {
         transform.localScale = scale;
     }
 
-    private void EnemyStats_OnPlayerHit(object sender, System.EventArgs e) {
-        StartCoroutine(StopMoving());
-    }
-
-    private IEnumerator StopMoving() {
+    public IEnumerator StopMoving() {
         stopMoving = true;
-        float stopDuration = 2f;
+        float stopDuration = 1f;
         yield return new WaitForSeconds(stopDuration);
         stopMoving = false;
     }

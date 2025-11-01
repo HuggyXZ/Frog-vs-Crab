@@ -77,6 +77,12 @@ public class PlayerMovement : MonoBehaviour {
     private float powerUpCounter;
     private bool isPoweredUp;
 
+    [Header("Knockback")]
+    [SerializeField] private float knockbackForce = 15f;
+    [SerializeField] private float knockbackUpward = 10f;
+    [SerializeField] private float knockbackDuration = 0.5f;
+    private bool canMove = true;
+
     private void Awake() {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
@@ -88,10 +94,14 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void Update() {
+        if (!canMove) return; // movement locked during knockback
+
         HandleJumpInput();
     }
 
     private void FixedUpdate() {
+        if (!canMove) return; // movement locked during knockback
+
         ApplyJump();
         ApplyWallJump();
         ApplyFallGravity();
@@ -309,6 +319,23 @@ public class PlayerMovement : MonoBehaviour {
         jumpPower -= powerUpJumpIncrease;
         maxJumpCount -= powerUpMaxJumpIncrease;
         isPoweredUp = false;
+    }
+
+    public void OnHitByEnemy(Vector3 enemyPosition) {
+        // Calculate direction away from enemy
+        Vector2 knockDirection = (transform.position - enemyPosition).normalized; // return -1 if left, 1 if right
+
+        // Apply instant knockback
+        myRigidBody.linearVelocity = new Vector2(knockDirection.x * knockbackForce, knockbackUpward);
+
+        // Disable movement temporarily
+        StartCoroutine(HandleKnockback());
+    }
+
+    private IEnumerator HandleKnockback() {
+        canMove = false;
+        yield return new WaitForSeconds(knockbackDuration);
+        canMove = true;
     }
 
     private void OnDrawGizmosSelected() {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour {
@@ -15,7 +16,6 @@ public class EnemyStats : MonoBehaviour {
     [SerializeField] private Vector2 sideCheckSize = new Vector2(2f, 2f);
 
     private bool playerSideCheck;
-    private bool isAttacking;
 
     private void Awake() {
         Instance = this;
@@ -28,21 +28,25 @@ public class EnemyStats : MonoBehaviour {
     private void OnSideCheck() {
         playerSideCheck = Physics2D.OverlapBox(sidecheck.position, sideCheckSize, 0f, playerLayer);
 
-        if (playerSideCheck && !isAttacking && !EnemyMovement.Instance.GetStopMoving()) {
+        if (playerSideCheck && !EnemyMovement.Instance.GetStopMoving()) {
             OnAttackPlayer?.Invoke(this, EventArgs.Empty);
-            isAttacking = true;
-        }
-
-        if (!playerSideCheck) {
-            isAttacking = false;
         }
     }
 
-    void OnCollisionEnter2D(Collision2D collision) {
+    private void OnCollisionEnter2D(Collision2D collision) {
+        TryDamagePlayer(collision);
+    }
+
+    private void OnCollisionStay2D(Collision2D collision) {
+        TryDamagePlayer(collision);
+    }
+
+    private void TryDamagePlayer(Collision2D collision) {
         if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && !EnemyMovement.Instance.GetStopMoving()) {
+            PlayerMovement.Instance.OnHitByEnemy(transform.position);
             OnPlayerHit?.Invoke(this, EventArgs.Empty);
             playerHealth.TakeDamge(damage);
-            isAttacking = false;
+            StartCoroutine(EnemyMovement.Instance.StopMoving());
         }
     }
 

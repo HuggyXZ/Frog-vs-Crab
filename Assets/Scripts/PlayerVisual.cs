@@ -1,13 +1,20 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerVisual : MonoBehaviour {
+    public static PlayerVisual Instance { get; private set; }
 
     [SerializeField] private Animator animator;
+    [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystem smokeFX;
 
     [Header("SmokeFX")]
     private float timeSinceLastFlip = 0; // time since last flip
     [SerializeField] private float minSmokeFXTime = 1; // minimum time between smokeFX plays
+
+    private void Awake() {
+        Instance = this;
+    }
 
     private void Start() {
         // Subscribe to player events
@@ -17,6 +24,8 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnLanded += Player_OnLanded;
         PlayerMovement.Instance.OnFlip += Player_OnFlip;
         PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
+
+        EnemyStats.Instance.OnPlayerHit += EnemyStats_OnPlayerHit;
     }
 
     // Update is called once per frame
@@ -62,5 +71,18 @@ public class PlayerVisual : MonoBehaviour {
 
     private void Player_OnStartMovingSameDirection(object sender, System.EventArgs e) {
         smokeFX.Play();
+    }
+
+    private void EnemyStats_OnPlayerHit(object sender, System.EventArgs e) {
+        animator.SetTrigger("hitTrigger");
+        StartCoroutine(FlashRed());
+    }
+
+    public IEnumerator FlashRed() {
+        spriteRenderer.color = Color.indianRed;
+
+        float flashDuration = 0.5f;
+        yield return new WaitForSeconds(flashDuration);
+        spriteRenderer.color = Color.white;
     }
 }
