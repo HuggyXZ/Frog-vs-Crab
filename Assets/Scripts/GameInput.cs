@@ -53,4 +53,8 @@ public class GameInput : MonoBehaviour {
     public bool IsHoldActionReleased() {
         return inputActions.Player.Hold.WasReleasedThisFrame();
     }
+
+    public bool WasShootActionPerformed() {
+        return inputActions.Player.Shoot.WasPerformedThisFrame();
+    }
 }

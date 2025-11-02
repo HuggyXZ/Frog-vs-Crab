@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1295116973
-  m_SortingLayer: -3
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_Sprite: {fileID: 7979084967657331261, guid: f3021cc7c69525c4387cd0efa5b7bfe2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -299,6 +299,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffef583f30fc14147a39008cb32aac61, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  spriteRenderer: {fileID: 8085201007999580771}
   animator: {fileID: 8923980587125800445}
 --- !u!114 &4530770302446543182
 MonoBehaviour:
@@ -313,7 +314,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   damage: 1
-  health: 100
+  Maxhealth: 3
   playerLayer:
     serializedVersion: 2
     m_Bits: 256

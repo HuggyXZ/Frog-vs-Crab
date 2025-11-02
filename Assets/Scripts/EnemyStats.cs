@@ -3,12 +3,15 @@ using System.Collections;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour {
-    public static event Action OnAttackPlayer;
+    public event Action OnAttackPlayer;
+    public event Action OnGetHit;
+    public event Action OnDie;
 
     private EnemyMovement enemyMovement;
 
     [SerializeField] private int damage = 1;
-    [SerializeField] private int health = 100;
+    [SerializeField] private int Maxhealth = 3;
+    private int currentHealth;
 
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private Transform sidecheck;
@@ -24,6 +27,8 @@ public class EnemyStats : MonoBehaviour {
 
     private void Start() {
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+
+        currentHealth = Maxhealth;
     }
 
     private void Update() {
@@ -58,7 +63,6 @@ public class EnemyStats : MonoBehaviour {
         if (!this.enabled) return;  // stop executing if disabled
 
         if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && canDamage) {
-            Debug.Log("Hit Player");
             PlayerMovement.Instance.OnHitByEnemy(transform.position);
             PlayerVisual.Instance.OnPlayerHit();
             playerHealth.TakeDamge(damage);
@@ -79,7 +83,29 @@ public class EnemyStats : MonoBehaviour {
         Gizmos.DrawWireCube(sidecheck.position, sideCheckSize);
     }
 
+    public void TakeDamage(int bulletDamage) {
+        currentHealth -= bulletDamage;
+        if (currentHealth <= 0) {
+            StartCoroutine(Die());
+        }
+        else {
+            OnGetHit?.Invoke();
+        }
+    }
+
+    private IEnumerator Die() {
+        OnDie?.Invoke();
+        this.enabled = false;
+        yield return new WaitForSeconds(1f);
+        Destroy(gameObject);
+    }
+
+
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
         this.enabled = false;
+    }
+
+    private void OnDisable() {
+        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
     }
 }

@@ -58,4 +58,9 @@ public class HoldToPowerUp : MonoBehaviour {
         float ratio = PlayerMovement.Instance.GetPowerUpCounter() / PlayerMovement.Instance.GetPowerUpTime();
         fillCircle.fillAmount = ratio;
     }
+
+    private void OnDisable() {
+        PlayerMovement.Instance.OnPowerUpCounterUpdate -= PlayerMovement_OnPowerUpCounterUpdate;
+        GameManager.Instance.OnPowerUpReady -= GameManager_OnPowerUpReady;
+    }
 }

@@ -22,8 +22,6 @@ public class PlayerHealth : MonoBehaviour {
         currentHealth -= damage;
         HealthUI.Instance.UpdateHearts(currentHealth);
 
-        Debug.Log("Player took damage: " + damage);
-
         if (currentHealth <= 0) {
             Debug.Log("Player died!");
             OnPlayerDied?.Invoke(this, EventArgs.Empty);

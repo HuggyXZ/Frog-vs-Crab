@@ -58,11 +58,17 @@ public class GameManager : MonoBehaviour {
         SceneManager.LoadScene(0);
     }
 
+    public void QuitGame() {
+        Application.Quit();
+    }
+
     public int GetProgressAmount() {
         return progressAmount;
     }
 
-    private void OnDestroy() {
+    private void OnDisable() {
         Star.OnStarCollect -= Star_OnStarCollect;
+        PlayerMovement.Instance.OnPowerUp -= PlayerMovement_OnPowerUp;
+        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
     }
 }

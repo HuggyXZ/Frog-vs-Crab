@@ -1,11 +1,11 @@
 using System.Collections;
 using UnityEngine;
 using System;
-using UnityEngine.UIElements;
 
 public class EnemyMovement : MonoBehaviour {
     private Rigidbody2D myRigidBody;
     private BoxCollider2D myBoxCollider;
+    private EnemyStats enemyStats;
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
@@ -52,6 +52,7 @@ public class EnemyMovement : MonoBehaviour {
     void Awake() {
         myRigidBody = GetComponent<Rigidbody2D>();
         myBoxCollider = GetComponent<BoxCollider2D>();
+        enemyStats = GetComponent<EnemyStats>();
     }
 
     private void Start() {
@@ -59,6 +60,7 @@ public class EnemyMovement : MonoBehaviour {
         playerCollider = playerTransform.GetComponent<BoxCollider2D>();
         platformCollider = Platform.instance.GetComponent<CompositeCollider2D>();
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        enemyStats.OnDie += EnemyStats_OnDie;
     }
 
     private void FixedUpdate() {
@@ -241,6 +243,11 @@ public class EnemyMovement : MonoBehaviour {
         Gizmos.DrawRay(transform.position + Vector3.right, Vector2.down * gapCheckDistance);
     }
 
+    private void EnemyStats_OnDie() {
+        myRigidBody.linearVelocityX = 0f;
+        this.enabled = false;
+    }
+
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
         Physics2D.IgnoreCollision(myBoxCollider, playerCollider, true);
         winJumpingCoroutine = StartCoroutine(WinJumping());
@@ -258,5 +265,10 @@ public class EnemyMovement : MonoBehaviour {
 
     public float GetHorizontalSpeed() {
         return Mathf.Abs(myRigidBody.linearVelocityX);
+    }
+
+    private void OnDisable() {
+        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        enemyStats.OnDie -= EnemyStats_OnDie;
     }
 }
