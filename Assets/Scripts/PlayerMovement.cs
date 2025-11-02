@@ -38,16 +38,17 @@ public class PlayerMovement : MonoBehaviour {
     private bool isFalling;
 
     [Header("Land Check")]
+    // Land
     [SerializeField] private Transform landCheck;
     [SerializeField] private Vector2 landCheckSize = new Vector2(1f, 0.025f);
     [SerializeField] private LayerMask landLayer;
     private bool isOnLand;
     private bool wasOnLand;
-
     // Platform
     [SerializeField] private LayerMask platformLayer;
     [SerializeField] private CompositeCollider2D platformCollider;
     private bool isOnPlatform;
+    private Coroutine disableCollisionCoroutine;
 
 
     [Header("Wall Check")]
@@ -104,10 +105,8 @@ public class PlayerMovement : MonoBehaviour {
         if (canMove) {
             ApplyJump();
             ApplyWallJump();
-            ApplyFallGravity();
             ProcessWallSlide();
             ProcessWallJumpCoyote();
-            HandleDownInput();
 
             // normal movement only if not wall-jump locked
             if (!wallJumpLock) {
@@ -120,6 +119,7 @@ public class PlayerMovement : MonoBehaviour {
         OnLandCheck();
         WallCheck();
         PlatformCheck();
+        ApplyFallGravity();
     }
 
     private void HandleJumpInput() {
@@ -176,6 +176,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void HandleMovementInput() {
+
         // Moving right
         if (GameInput.Instance.IsRightActionPressed()) {
             myRigidBody.linearVelocityX = moveSpeed;
@@ -200,6 +201,10 @@ public class PlayerMovement : MonoBehaviour {
         else {
             myRigidBody.linearVelocityX = 0f;
             stopMovingTimer += Time.deltaTime;
+        }
+
+        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
+            TriggerDisablePlatformCollision();
         }
     }
 
@@ -233,17 +238,19 @@ public class PlayerMovement : MonoBehaviour {
         wallJumpLock = false;
     }
 
-    private void HandleDownInput() {
-        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
-            StartCoroutine(DisablePlatformCollision());
-        }
-    }
-
     private IEnumerator DisablePlatformCollision() {
         float dropDuration = 0.4f;
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
         yield return new WaitForSeconds(dropDuration);
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
+        disableCollisionCoroutine = null;
+    }
+
+    private void TriggerDisablePlatformCollision() {
+        if (disableCollisionCoroutine != null)
+            StopCoroutine(disableCollisionCoroutine);
+
+        disableCollisionCoroutine = StartCoroutine(DisablePlatformCollision());
     }
 
     private void OnLandCheck() {
@@ -260,7 +267,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     public void PlatformCheck() {
-        isOnPlatform = Physics2D.OverlapBox(wallCheck.position, wallCheckSize, 0f, platformLayer);
+        isOnPlatform = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, platformLayer);
     }
 
     private void ApplyFallGravity() {

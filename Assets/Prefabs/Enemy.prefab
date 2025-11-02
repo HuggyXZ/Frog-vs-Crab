@@ -138,7 +138,7 @@ Transform:
   m_GameObject: {fileID: 840752967848675507}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -269,23 +269,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   moveSpeed: 5
-  jumpPower: 25
+  jumpPower: 30
   chaseRange: 15
   playerAboveCheckDistance: 15
+  playerBelowCheckDistance: 15
   landAboveCheckDistance: 7
   frontCheckDistance: 2
   gapCheckDistance: 2
   playerLayer:
     serializedVersion: 2
     m_Bits: 256
-  platformLayer:
-    serializedVersion: 2
-    m_Bits: 128
   landLayer:
     serializedVersion: 2
     m_Bits: 136
   landCheck: {fileID: 2884067542669801038}
   landCheckSize: {x: 2.05, y: 0.025}
+  platformLayer:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &9215415513547801822
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -317,7 +318,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   sidecheck: {fileID: 741182215310753281}
-  sideCheckSize: {x: 2, y: 2}
+  sideCheckSize: {x: 4, y: 2}
 --- !u!1 &6755897466424369098
 GameObject:
   m_ObjectHideFlags: 0

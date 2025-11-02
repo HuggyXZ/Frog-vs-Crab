@@ -1,16 +1,9 @@
 using UnityEngine;
 
-public class Platform : MonoBehaviour
-{
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+public class Platform : MonoBehaviour {
+    public static Platform instance { get; private set; }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    private void Awake() {
+        instance = this;
     }
 }

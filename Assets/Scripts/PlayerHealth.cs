@@ -1,7 +1,10 @@
-using System.Collections;
+using System;
 using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour {
+    public static PlayerHealth Instance { get; private set; }
+
+    public event EventHandler OnPlayerDied;
 
     public int maxHealth = 5;
     private int currentHealth;
@@ -15,8 +18,11 @@ public class PlayerHealth : MonoBehaviour {
         currentHealth -= damage;
         HealthUI.Instance.UpdateHearts(currentHealth);
 
+        Debug.Log("Player took damage: " + damage);
+
         if (currentHealth <= 0) {
             Debug.Log("Player died!");
+            OnPlayerDied?.Invoke(this, EventArgs.Empty);
         }
     }
 

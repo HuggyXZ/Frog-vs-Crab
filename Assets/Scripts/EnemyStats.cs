@@ -12,10 +12,11 @@ public class EnemyStats : MonoBehaviour {
 
     [SerializeField] private LayerMask playerLayer;
     [SerializeField] private Transform sidecheck;
-    [SerializeField] private Vector2 sideCheckSize = new Vector2(2f, 2f);
+    [SerializeField] private Vector2 sideCheckSize = new Vector2(4f, 2f);
 
-    private bool playerSideCheck;
+    private bool inAttackRange;
     private bool canAttack = true;
+    private bool canDamage = true;
 
     private void Awake() {
         enemyMovement = GetComponent<EnemyMovement>();
@@ -26,9 +27,9 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void OnSideCheck() {
-        playerSideCheck = Physics2D.OverlapBox(sidecheck.position, sideCheckSize, 0f, playerLayer);
+        inAttackRange = Physics2D.OverlapBox(sidecheck.position, sideCheckSize, 0f, playerLayer);
 
-        if (playerSideCheck && canAttack) {
+        if (inAttackRange && canAttack) {
             OnAttackPlayer?.Invoke(this, EventArgs.Empty);
             StartCoroutine(AttackCooldown());
         }
@@ -50,12 +51,20 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void TryDamagePlayer(Collision2D collision) {
-        if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && !enemyMovement.GetStopMoving()) {
+        if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && canDamage) {
             PlayerMovement.Instance.OnHitByEnemy(transform.position);
             PlayerVisual.Instance.OnPlayerHit();
             playerHealth.TakeDamge(damage);
-            enemyMovement.StartCoroutine(enemyMovement.StopMoving());
+            StartCoroutine(StopHiting());
+            enemyMovement.TriggerStopMoving();
         }
+    }
+
+    public IEnumerator StopHiting() {
+        float stopDuration = 1f;
+        canDamage = false;
+        yield return new WaitForSeconds(stopDuration);
+        canDamage = true;
     }
 
     private void OnDrawGizmosSelected() {
