@@ -91,6 +91,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void Start() {
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
         jumpRemaining = maxJumpCount;
     }
 
@@ -352,6 +353,10 @@ public class PlayerMovement : MonoBehaviour {
 
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(wallCheck.position, wallCheckSize);
+    }
+
+    private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+        this.enabled = false;
     }
 
     public float GetPowerUpTime() { return powerUpTime; }

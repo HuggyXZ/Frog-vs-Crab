@@ -24,6 +24,7 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnLanded += Player_OnLanded;
         PlayerMovement.Instance.OnFlip += Player_OnFlip;
         PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
     // Update is called once per frame
@@ -84,11 +85,8 @@ public class PlayerVisual : MonoBehaviour {
         spriteRenderer.color = Color.white;
     }
 
-    private void OnDestroy() {
-        PlayerMovement.Instance.OnJump -= Player_OnJump;
-        PlayerMovement.Instance.OnAirJump -= Player_OnAirJump;
-        PlayerMovement.Instance.OnWallJump -= Player_OnWallJump;
-        PlayerMovement.Instance.OnLanded -= Player_OnLanded;
-        PlayerMovement.Instance.OnFlip -= Player_OnFlip;
+    private void PlayerHealth_OnPlayerDied(object sender, System.EventArgs e) {
+        animator.SetTrigger("dieTrigger");
+        this.enabled = false;
     }
 }

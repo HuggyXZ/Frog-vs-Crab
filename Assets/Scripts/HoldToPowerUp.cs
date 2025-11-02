@@ -14,7 +14,7 @@ public class HoldToPowerUp : MonoBehaviour {
     private Transform playerTransform;
 
     private void Start() {
-        GameManager.OnPowerUpReady += GameManager_OnPowerUpReady;
+        GameManager.Instance.OnPowerUpReady += GameManager_OnPowerUpReady;
         PlayerMovement.Instance.OnPowerUpCounterUpdate += PlayerMovement_OnPowerUpCounterUpdate;
     }
 
@@ -50,7 +50,7 @@ public class HoldToPowerUp : MonoBehaviour {
         }
     }
 
-    private void GameManager_OnPowerUpReady() {
+    private void GameManager_OnPowerUpReady(object sender, EventArgs e) {
         canHold = true;
     }
 

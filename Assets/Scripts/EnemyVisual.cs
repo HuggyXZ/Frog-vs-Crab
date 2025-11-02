@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class EnemyVisual : MonoBehaviour {
     private EnemyStats enemyStats;
@@ -12,19 +13,24 @@ public class EnemyVisual : MonoBehaviour {
     }
 
     private void Start() {
-        enemyStats.OnAttackPlayer += EnemyStats_OnAttackPlayer;
+        EnemyStats.OnAttackPlayer += EnemyStats_OnAttackPlayer;
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
     void LateUpdate() {
         animator.SetFloat("horizontalSpeed", enemyMovement.GetHorizontalSpeed());
     }
 
-    private void EnemyStats_OnAttackPlayer(object sender, System.EventArgs e) {
+    private void EnemyStats_OnAttackPlayer() {
         animator.SetTrigger("attackTrigger");
     }
 
-    void OnDestroy() {
-        enemyStats.OnAttackPlayer -= EnemyStats_OnAttackPlayer;
+    private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+        this.enabled = false;
+    }
+
+    private void OnDestroy() {
+        EnemyStats.OnAttackPlayer -= EnemyStats_OnAttackPlayer;
     }
 
 }

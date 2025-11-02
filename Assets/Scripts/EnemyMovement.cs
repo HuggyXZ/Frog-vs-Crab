@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using System;
+using UnityEngine.UIElements;
 
 public class EnemyMovement : MonoBehaviour {
     private Rigidbody2D myRigidBody;
@@ -25,6 +27,7 @@ public class EnemyMovement : MonoBehaviour {
     [Header("References & Layers")]
     private Transform playerTransform;
     [SerializeField] private LayerMask playerLayer;
+    private BoxCollider2D playerCollider;
     // Land
     [SerializeField] private LayerMask landLayer;
     [SerializeField] private Transform landCheck;
@@ -44,6 +47,7 @@ public class EnemyMovement : MonoBehaviour {
     private bool isPlayerDirectlyAbove;
     private bool isPlayerDirectlyBelow;
     private bool isPlayerAnyBelow;
+    private Coroutine winJumpingCoroutine;
 
     void Awake() {
         myRigidBody = GetComponent<Rigidbody2D>();
@@ -52,26 +56,31 @@ public class EnemyMovement : MonoBehaviour {
 
     private void Start() {
         playerTransform = PlayerMovement.Instance.transform;
+        playerCollider = playerTransform.GetComponent<BoxCollider2D>();
         platformCollider = Platform.instance.GetComponent<CompositeCollider2D>();
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
     private void FixedUpdate() {
-        UpdateTargetInfo();
+        UpdateTargetInfo(); // Update target info
 
-        // Stop moving if player is too far
-        if (distanceToPlayer > chaseRange) {
-            myRigidBody.linearVelocityX = 0f;
-            stopChasing = true;
-        }
-        else {
-            stopChasing = false;
-        }
+        if (winJumpingCoroutine == null) {
+            // Stop moving if player is too far
+            if (distanceToPlayer > chaseRange) {
+                myRigidBody.linearVelocityX = 0f;
+                stopChasing = true;
+            }
+            else {
+                stopChasing = false;
+            }
 
-        if (!stopMoving && !isJumping && !stopChasing) {
-            HandleGroundMovement();
-            DecideJump();
-            ApplyJump();
-            DecideDroppingDown();
+            if (!stopMoving && !isJumping && !stopChasing) {
+                HandleGroundMovement();
+                DecideJump();
+                ApplyJump();
+                DecideDroppingDown();
+            }
+
         }
 
         Flip();
@@ -103,8 +112,8 @@ public class EnemyMovement : MonoBehaviour {
         RaycastHit2D gapAhead = Physics2D.Raycast(transform.position + new Vector3(direction, 0, 0), Vector2.down, gapCheckDistance, landLayer);
         RaycastHit2D platformAbove = Physics2D.Raycast(transform.position, Vector2.up, landAboveCheckDistance, platformLayer);
 
-        bool hasLandInFront = landInFront.collider;
-        bool hasGapAhead = !gapAhead.collider;
+        bool hasLandInFront = landInFront.collider != null;
+        bool hasGapAhead = gapAhead.collider == null;
         bool hasPlatformAbove = platformAbove.collider != null;
         bool isPlayerOnPlatform = PlayerMovement.Instance.GetIsOnPlatform();
 
@@ -123,17 +132,13 @@ public class EnemyMovement : MonoBehaviour {
 
     private void ApplyJump() {
         if (!shouldJumpSide && !shouldJumpUp) return;
+        float sideJumpPower = shouldJumpSide ? 20f : 0f;
 
-        if (shouldJumpUp) {
-            float sideJumpPower = 0f;
-            myRigidBody.linearVelocity = new Vector2(sideJumpPower, jumpPower);
-            shouldJumpUp = false;
-        }
-        if (shouldJumpSide) {
-            float sideJumpPower = 20f;
-            myRigidBody.linearVelocity = new Vector2(direction * sideJumpPower, jumpPower);
-            shouldJumpSide = false;
-        }
+        myRigidBody.linearVelocity = new Vector2(sideJumpPower * direction, jumpPower);
+
+        shouldJumpSide = false;
+        shouldJumpUp = false;
+
         StartCoroutine(JumpCooldown());
     }
 
@@ -234,6 +239,21 @@ public class EnemyMovement : MonoBehaviour {
         Gizmos.DrawRay(transform.position, Vector2.right * frontCheckDistance);
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(transform.position + Vector3.right, Vector2.down * gapCheckDistance);
+    }
+
+    private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+        Physics2D.IgnoreCollision(myBoxCollider, playerCollider, true);
+        winJumpingCoroutine = StartCoroutine(WinJumping());
+    }
+
+    private IEnumerator WinJumping() {
+        while (true) {
+            if (isOnLand) {
+                myRigidBody.linearVelocityY = jumpPower * 0.5f;
+            }
+            // Wait some time before jumping again
+            yield return new WaitForSeconds(0.5f);
+        }
     }
 
     public float GetHorizontalSpeed() {

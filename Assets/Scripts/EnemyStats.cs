@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 public class EnemyStats : MonoBehaviour {
-    public event EventHandler OnAttackPlayer;
+    public static event Action OnAttackPlayer;
 
     private EnemyMovement enemyMovement;
 
@@ -22,6 +22,10 @@ public class EnemyStats : MonoBehaviour {
         enemyMovement = GetComponent<EnemyMovement>();
     }
 
+    private void Start() {
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+    }
+
     private void Update() {
         OnSideCheck();
     }
@@ -30,7 +34,7 @@ public class EnemyStats : MonoBehaviour {
         inAttackRange = Physics2D.OverlapBox(sidecheck.position, sideCheckSize, 0f, playerLayer);
 
         if (inAttackRange && canAttack) {
-            OnAttackPlayer?.Invoke(this, EventArgs.Empty);
+            OnAttackPlayer?.Invoke();
             StartCoroutine(AttackCooldown());
         }
     }
@@ -51,7 +55,10 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void TryDamagePlayer(Collision2D collision) {
+        if (!this.enabled) return;  // stop executing if disabled
+
         if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && canDamage) {
+            Debug.Log("Hit Player");
             PlayerMovement.Instance.OnHitByEnemy(transform.position);
             PlayerVisual.Instance.OnPlayerHit();
             playerHealth.TakeDamge(damage);
@@ -70,5 +77,9 @@ public class EnemyStats : MonoBehaviour {
     private void OnDrawGizmosSelected() {
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(sidecheck.position, sideCheckSize);
+    }
+
+    private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+        this.enabled = false;
     }
 }

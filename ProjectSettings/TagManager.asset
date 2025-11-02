@@ -51,14 +51,14 @@ TagManager:
   - name: SmallStar
     uniqueID: 113090807
     locked: 0
-  - name: Enemy
-    uniqueID: 2999850323
-    locked: 0
   - name: Player
     uniqueID: 3152848147
     locked: 0
   - name: PlayerEffect
     uniqueID: 450047019
+    locked: 0
+  - name: Enemy
+    uniqueID: 2999850323
     locked: 0
   - name: Default
     uniqueID: 0
