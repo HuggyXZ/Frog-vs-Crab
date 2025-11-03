@@ -332,7 +332,7 @@ public class PlayerMovement : MonoBehaviour {
 
     public void OnHitByEnemy(Vector3 enemyPosition) {
         // Calculate direction away from enemy
-        Vector2 knockDirection = (transform.position - enemyPosition).normalized; // return -1 if left, 1 if right
+        Vector2 knockDirection = (transform.position - enemyPosition).normalized;
 
         // Apply instant knockback
         myRigidBody.linearVelocity = new Vector2(knockDirection.x * knockbackForce, knockbackUpward);

@@ -10,6 +10,8 @@ public class EnemyVisual : MonoBehaviour {
 
     [SerializeField] private Animator animator;
 
+    private Coroutine flashPurpleCoroutine;
+
     private void Awake() {
         enemyStats = GetComponent<EnemyStats>();
         enemyMovement = GetComponent<EnemyMovement>();
@@ -32,19 +34,30 @@ public class EnemyVisual : MonoBehaviour {
 
     private void EnemyStats_OnGetHit() {
         animator.SetTrigger("hitTrigger");
-        StartCoroutine(FlashPurple());
+        TriggerFlashPurple();
     }
 
-    private void EnemyStats_OnDie() {
-        animator.SetTrigger("dieTrigger");
-        this.enabled = false;
+    public void TriggerFlashPurple() {
+        if (flashPurpleCoroutine != null) {
+            StopCoroutine(flashPurpleCoroutine);
+        }
+        flashPurpleCoroutine = StartCoroutine(FlashPurple());
     }
 
     private IEnumerator FlashPurple() {
         spriteRenderer.color = Color.purple;
-        float flashDuration = 0.5f;
+        float flashDuration = 0.3f;
         yield return new WaitForSeconds(flashDuration);
         spriteRenderer.color = Color.white;
+    }
+
+    private void EnemyStats_OnDie() {
+        if (flashPurpleCoroutine != null) {
+            StopCoroutine(flashPurpleCoroutine);
+        }
+        spriteRenderer.color = Color.purple;
+        animator.SetTrigger("dieTrigger");
+        this.enabled = false;
     }
 
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
@@ -52,8 +65,6 @@ public class EnemyVisual : MonoBehaviour {
     }
 
     private void OnDisable() {
-        spriteRenderer.color = Color.purple;
-
         enemyStats.OnAttackPlayer -= EnemyStats_OnAttackPlayer;
         enemyStats.OnGetHit -= EnemyStats_OnGetHit;
         enemyStats.OnDie -= EnemyStats_OnDie;

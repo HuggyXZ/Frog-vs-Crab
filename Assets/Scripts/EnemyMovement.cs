@@ -218,6 +218,7 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private IEnumerator StopMoving() {
+        myRigidBody.linearVelocityX = 0f;
         float stopDuration = 2f;
         stopMoving = true;
         yield return new WaitForSeconds(stopDuration);

@@ -45,8 +45,8 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private IEnumerator AttackCooldown() {
-        float attackCooldown = 1f; // time between damage ticks
         canAttack = false;
+        float attackCooldown = 1f; // time between damage ticks
         yield return new WaitForSeconds(attackCooldown);
         canAttack = true;
     }
@@ -72,8 +72,8 @@ public class EnemyStats : MonoBehaviour {
     }
 
     public IEnumerator StopHiting() {
-        float stopDuration = 1f;
         canDamage = false;
+        float stopDuration = 1f;
         yield return new WaitForSeconds(stopDuration);
         canDamage = true;
     }
@@ -96,7 +96,8 @@ public class EnemyStats : MonoBehaviour {
     private IEnumerator Die() {
         OnDie?.Invoke();
         this.enabled = false;
-        yield return new WaitForSeconds(1f);
+        float dieDuration = 1f;
+        yield return new WaitForSeconds(dieDuration);
         Destroy(gameObject);
     }
 
