@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class EnemyStats : MonoBehaviour {
     public event Action OnAttackPlayer;
@@ -20,6 +22,9 @@ public class EnemyStats : MonoBehaviour {
     private bool inAttackRange;
     private bool canAttack = true;
     private bool canDamage = true;
+
+    [Header("Loot")]
+    public List<LootItem> lootTable = new List<LootItem>();
 
     private void Awake() {
         enemyMovement = GetComponent<EnemyMovement>();
@@ -60,8 +65,6 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void TryDamagePlayer(Collision2D collision) {
-        if (!this.enabled) return;  // stop executing if disabled
-
         if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && canDamage) {
             PlayerMovement.Instance.OnHitByEnemy(transform.position);
             PlayerVisual.Instance.OnPlayerHit();
@@ -95,10 +98,24 @@ public class EnemyStats : MonoBehaviour {
 
     private IEnumerator Die() {
         OnDie?.Invoke();
-        this.enabled = false;
+        canAttack = false;
+        canDamage = false;
+        foreach (LootItem lootItem in lootTable) {
+            if (Random.Range(0f, 100f) <= lootItem.dropChance) {
+                InstantiateLoot(lootItem.itemPrefab);
+                break;
+            }
+        }
         float dieDuration = 1f;
         yield return new WaitForSeconds(dieDuration);
         Destroy(gameObject);
+    }
+
+    private void InstantiateLoot(GameObject loot) {
+        if (loot == null) return;
+        GameObject droppedLoot = Instantiate(loot, transform.position, Quaternion.identity);
+
+        droppedLoot.GetComponentInChildren<SpriteRenderer>().color = Color.red;
     }
 
 

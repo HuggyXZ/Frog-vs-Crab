@@ -9,6 +9,8 @@ public class PlayerVisual : MonoBehaviour {
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystem smokeFX;
 
+    private bool powerUp;
+
     [Header("SmokeFX")]
     private float timeSinceLastFlip = 0; // time since last flip
     [SerializeField] private float minSmokeFXTime = 1; // minimum time between smokeFX plays
@@ -24,8 +26,12 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnWallJump += Player_OnWallJump;
         PlayerMovement.Instance.OnLanded += Player_OnLanded;
         PlayerMovement.Instance.OnFlip += Player_OnFlip;
-        PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
+        Star.OnStarCollect += Star_OnStarCollect;
+        HealthItem.OnHealthCollect += HealthItem_OnHealthCollect;
         PlayerShoot.Instance.OnShoot += PlayerShoot_OnShoot;
+        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
+        PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
@@ -70,8 +76,12 @@ public class PlayerVisual : MonoBehaviour {
         timeSinceLastFlip = 0;
     }
 
-    private void Player_OnStartMovingSameDirection(object sender, EventArgs e) {
-        smokeFX.Play();
+    private void Star_OnStarCollect(int starValue) {
+        animator.SetTrigger("collectTrigger");
+    }
+
+    private void HealthItem_OnHealthCollect(int healthValue) {
+        animator.SetTrigger("collectTrigger");
     }
 
     public void OnPlayerHit() {
@@ -83,15 +93,40 @@ public class PlayerVisual : MonoBehaviour {
         spriteRenderer.color = Color.indianRed;
         float flashDuration = 0.5f;
         yield return new WaitForSeconds(flashDuration);
-        spriteRenderer.color = Color.white;
+        if (powerUp) {
+            spriteRenderer.color = Color.yellow;
+        }
+        else {
+            spriteRenderer.color = Color.white;
+        }
     }
 
     private void PlayerShoot_OnShoot(object sender, EventArgs e) {
         animator.SetTrigger("shootTrigger");
     }
 
+    private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
+        spriteRenderer.color = Color.yellow;
+        powerUp = true;
+    }
+
+    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
+        spriteRenderer.color = Color.white;
+        powerUp = false;
+    }
+
+    private void Player_OnStartMovingSameDirection(object sender, EventArgs e) {
+        smokeFX.Play();
+    }
+
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+        StartCoroutine(PlayerDied());
+    }
+
+    private IEnumerator PlayerDied() {
         animator.SetTrigger("dieTrigger");
+        yield return new WaitForSeconds(3f);
+        animator.enabled = false;
         this.enabled = false;
     }
 

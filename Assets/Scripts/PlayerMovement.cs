@@ -11,8 +11,6 @@ public class PlayerMovement : MonoBehaviour {
     public event EventHandler OnLanded;
     public event EventHandler OnFlip;
     public event EventHandler OnStartMovingSameDirection;
-    public event EventHandler OnPowerUp;
-    public event EventHandler OnPowerUpCounterUpdate;
 
     private Rigidbody2D myRigidBody;
     private BoxCollider2D myBoxCollider;
@@ -74,9 +72,6 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
     [SerializeField] private float powerUpJumpIncrease = 10f;
     [SerializeField] private int powerUpMaxJumpIncrease = 1;
-    [SerializeField] private float powerUpTime = 15f;
-    private float powerUpCounter;
-    private bool isPoweredUp;
 
     [Header("Knockback")]
     [SerializeField] private float knockbackForce = 15f;
@@ -91,6 +86,8 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void Start() {
+        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
         jumpRemaining = maxJumpCount;
     }
@@ -301,33 +298,16 @@ public class PlayerMovement : MonoBehaviour {
         OnFlip?.Invoke(this, EventArgs.Empty);
     }
 
-    public void ActivatePowerUp() {
-        if (isPoweredUp) return; // prevent overlap
-
-        isPoweredUp = true;
+    private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
         moveSpeed += powerUpMoveSpeedIncrease;
         jumpPower += powerUpJumpIncrease;
         maxJumpCount += powerUpMaxJumpIncrease;
-
-        OnPowerUp?.Invoke(this, EventArgs.Empty);
-
-        StartCoroutine(PowerUpDuration());
     }
 
-    private IEnumerator PowerUpDuration() {
-        powerUpCounter = powerUpTime;
-        while (powerUpCounter > 0) {
-            powerUpCounter -= Time.deltaTime;
-            OnPowerUpCounterUpdate?.Invoke(this, EventArgs.Empty);
-            yield return null;
-        }
-
-        // Revert stats
-        powerUpCounter = 0;
+    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
         moveSpeed -= powerUpMoveSpeedIncrease;
         jumpPower -= powerUpJumpIncrease;
         maxJumpCount -= powerUpMaxJumpIncrease;
-        isPoweredUp = false;
     }
 
     public void OnHitByEnemy(Vector3 enemyPosition) {
@@ -359,9 +339,6 @@ public class PlayerMovement : MonoBehaviour {
         this.enabled = false;
     }
 
-    public float GetPowerUpTime() { return powerUpTime; }
-    public float GetPowerUpCounter() { return powerUpCounter; }
-
     public float GetHorizontalSpeed() {
         return Mathf.Abs(myRigidBody.linearVelocityX);
     }
@@ -371,4 +348,10 @@ public class PlayerMovement : MonoBehaviour {
     public bool GetIsOnWall() { return isOnWall; }
     public bool GetIsFalling() { return isFalling; }
     public bool GetIsWallSliding() { return isWallSliding; }
+
+    private void OnDisable() {
+        HoldToPowerUp.Instance.OnPowerUp -= HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpEnd -= HoldToPowerUp_OnPowerUpEnd;
+        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+    }
 }

@@ -227,11 +227,6 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void OnDrawGizmosSelected() {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(landCheck.position, landCheckSize);
-    }
-
-    private void OnDrawGizmos() {
         Gizmos.color = Color.yellow;
         Gizmos.DrawRay(transform.position, Vector2.up * playerAboveCheckDistance);
         Gizmos.color = Color.cyan;
@@ -242,6 +237,9 @@ public class EnemyMovement : MonoBehaviour {
         Gizmos.DrawRay(transform.position, Vector2.right * frontCheckDistance);
         Gizmos.color = Color.blue;
         Gizmos.DrawRay(transform.position + Vector3.right, Vector2.down * gapCheckDistance);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(landCheck.position, landCheckSize);
     }
 
     private void EnemyStats_OnDie() {

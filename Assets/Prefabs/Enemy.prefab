@@ -254,7 +254,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.0066228, y: 0.88073874}
+  m_Size: {x: 1.5011679, y: 0.88073874}
   m_EdgeRadius: 0
 --- !u!114 &6024679379043331139
 MonoBehaviour:
@@ -283,7 +283,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 136
   landCheck: {fileID: 2884067542669801038}
-  landCheckSize: {x: 2.05, y: 0.025}
+  landCheckSize: {x: 1.5, y: 0.025}
   platformLayer:
     serializedVersion: 2
     m_Bits: 128
@@ -320,6 +320,13 @@ MonoBehaviour:
     m_Bits: 256
   sidecheck: {fileID: 741182215310753281}
   sideCheckSize: {x: 4, y: 2}
+  lootTable:
+  - itemPrefab: {fileID: 6313392762327710973, guid: b11442b1126888f4bba8bc71dc90aa08, type: 3}
+    dropChance: 60
+  - itemPrefab: {fileID: 6313392762327710973, guid: 6af732241a3df644cbfa9d7884c3ae8e, type: 3}
+    dropChance: 80
+  - itemPrefab: {fileID: 4005978683148637611, guid: 168aa5678f08b314495b5199104d79af, type: 3}
+    dropChance: 100
 --- !u!1 &6755897466424369098
 GameObject:
   m_ObjectHideFlags: 0

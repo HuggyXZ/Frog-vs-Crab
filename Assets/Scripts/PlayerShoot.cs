@@ -9,12 +9,18 @@ public class PlayerShoot : MonoBehaviour {
     public event EventHandler OnShoot;
 
     [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private float bulletSpeed = 50f;
-    [SerializeField] private float fireRate = 1f;
+    [SerializeField] private float bulletSpeed = 15f;
+    [SerializeField] private float fireRate = 2f;
     private bool canShoot = true;
 
     private void Awake() {
         Instance = this;
+    }
+
+    private void Start() {
+        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
     void Update() {
@@ -46,6 +52,16 @@ public class PlayerShoot : MonoBehaviour {
 
         yield return new WaitForSeconds(1f / fireRate);
         canShoot = true;
+    }
+
+    private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
+        bulletSpeed += 20f;
+        fireRate += 1f;
+    }
+
+    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
+        bulletSpeed -= 20f;
+        fireRate -= 1f;
     }
 
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {

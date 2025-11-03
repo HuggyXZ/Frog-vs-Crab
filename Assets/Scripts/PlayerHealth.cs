@@ -6,7 +6,7 @@ public class PlayerHealth : MonoBehaviour {
 
     public event EventHandler OnPlayerDied;
 
-    public int maxHealth = 5;
+    [SerializeField] private int maxHealth = 5;
     private int currentHealth;
 
     private void Awake() {
@@ -14,6 +14,7 @@ public class PlayerHealth : MonoBehaviour {
     }
 
     private void Start() {
+        HealthItem.OnHealthCollect += HealthItem_OnHealthCollect;
         currentHealth = maxHealth;
         HealthUI.Instance.SetMaxHearts(maxHealth);
     }
@@ -23,9 +24,24 @@ public class PlayerHealth : MonoBehaviour {
         HealthUI.Instance.UpdateHearts(currentHealth);
 
         if (currentHealth <= 0) {
-            Debug.Log("Player died!");
             OnPlayerDied?.Invoke(this, EventArgs.Empty);
             this.enabled = false;
         }
+    }
+
+    private void HealthItem_OnHealthCollect(int amount) {
+        currentHealth += amount;
+        if (currentHealth > maxHealth) {
+            currentHealth = maxHealth;
+        }
+
+        HealthUI.Instance.UpdateHearts(currentHealth);
+    }
+    public int GetMaxHealth() { return maxHealth; }
+
+    public int GetCurrentHealth() { return currentHealth; }
+
+    private void OnDisable() {
+        HealthItem.OnHealthCollect -= HealthItem_OnHealthCollect;
     }
 }
