@@ -22,6 +22,8 @@ public class ObjectSpawner : MonoBehaviour {
     private bool isSpawning = false;
 
     private void Start() {
+        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+
         GatherSpawnPositions();
         StartCoroutine(SpawnObjectsIfNeeded());
     }
@@ -48,7 +50,7 @@ public class ObjectSpawner : MonoBehaviour {
     }
 
     private bool PositionHasObject(Vector3 position) {
-        return spawnObjects.Any(checkObj => checkObj && Vector3.Distance(checkObj.transform.position, position) < 1f);
+        return spawnObjects.Any(checkObj => checkObj && Vector3.Distance(checkObj.transform.position, position) < 2f);
     }
 
     private ObjectType RandomObjectType() {
@@ -131,4 +133,11 @@ public class ObjectSpawner : MonoBehaviour {
             }
         }
     }
+
+    private void PlayerHealth_OnPlayerDied(object sender, System.EventArgs e) {
+        this.enabled = false;
+    }
 }
+
+
+

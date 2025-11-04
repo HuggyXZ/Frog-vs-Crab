@@ -1,9 +1,9 @@
 using UnityEngine;
 
 public class Platform : MonoBehaviour {
-    public static Platform instance { get; private set; }
+    public static Platform Instance { get; private set; }
 
     private void Awake() {
-        instance = this;
+        Instance = this;
     }
 }

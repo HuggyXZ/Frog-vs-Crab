@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6076094645377312448}
   - component: {fileID: 8311605049118795363}
   m_Layer: 0
-  m_Name: bigStar
+  m_Name: BigStar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -161,7 +161,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1714570213
-  m_SortingLayer: 3
+  m_SortingLayer: -7
   m_SortingOrder: 0
   m_Sprite: {fileID: -9042160269915873362, guid: a8fb262f8903565459ac6880571a60ad, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

@@ -10,7 +10,6 @@ public class EnemyMovement : MonoBehaviour {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpPower = 30f;
-    [SerializeField] private float chaseRange = 15f; // how far the enemy can detect/chase the player
     private Coroutine stopMovingCoroutine;
 
     float distanceToPlayer;
@@ -18,8 +17,9 @@ public class EnemyMovement : MonoBehaviour {
     private bool isFacingRight = true;
 
     [Header("Checks")]
-    [SerializeField] private float playerAboveCheckDistance = 15f;
-    [SerializeField] private float playerBelowCheckDistance = 15f;
+    [SerializeField] private float chaseRange = 30f; // how far the enemy can detect/chase the player
+    [SerializeField] private float playerAboveCheckDistance = 30f;
+    [SerializeField] private float playerBelowCheckDistance = 30f;
     [SerializeField] private float landAboveCheckDistance = 7f;
     [SerializeField] private float frontCheckDistance = 2f;
     [SerializeField] private float gapCheckDistance = 2f;
@@ -35,6 +35,7 @@ public class EnemyMovement : MonoBehaviour {
     // Platform
     [SerializeField] private LayerMask platformLayer;
     private CompositeCollider2D platformCollider;
+    private BoxCollider2D movingPlatformCollider;
     private Coroutine disableCollisionCoroutine;
 
     private bool shouldJumpUp;
@@ -58,24 +59,15 @@ public class EnemyMovement : MonoBehaviour {
     private void Start() {
         playerTransform = PlayerMovement.Instance.transform;
         playerCollider = playerTransform.GetComponent<BoxCollider2D>();
-        platformCollider = Platform.instance.GetComponent<CompositeCollider2D>();
+        platformCollider = Platform.Instance.GetComponent<CompositeCollider2D>();
+        movingPlatformCollider = MovingPlatform.Instance.GetComponent<BoxCollider2D>();
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
         enemyStats.OnDie += EnemyStats_OnDie;
     }
 
     private void FixedUpdate() {
-        UpdateTargetInfo(); // Update target info
-
         if (winJumpingCoroutine == null) {
-            // Stop moving if player is too far
-            if (distanceToPlayer > chaseRange) {
-                myRigidBody.linearVelocityX = 0f;
-                stopChasing = true;
-            }
-            else {
-                stopChasing = false;
-            }
-
+            UpdateTargetInfo(); // Update target info
             if (!stopMoving && !isJumping && !stopChasing) {
                 HandleGroundMovement();
                 DecideJump();
@@ -83,20 +75,29 @@ public class EnemyMovement : MonoBehaviour {
                 DecideDroppingDown();
             }
 
-        }
 
-        Flip();
-        OnLandCheck();
-        OnPlatformCheck();
-        PlayerDirectlyAboveCheck();
-        PlayerDirectlyBelowCheck();
-        PlayerAnyBelowCheck();
+            Flip();
+            OnLandCheck();
+            OnPlatformCheck();
+            PlayerDirectlyAboveCheck();
+            PlayerDirectlyBelowCheck();
+            PlayerAnyBelowCheck();
+        }
     }
 
     private void UpdateTargetInfo() {
         // Use Mathf.Sign for simple horizontal chasing (most cases)
-        distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
         direction = Mathf.Sign(playerTransform.position.x - transform.position.x); // return -1 or 1 depending on direction
+
+        distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+        // Stop moving if player is too far
+        if (distanceToPlayer > chaseRange) {
+            myRigidBody.linearVelocityX = 0f;
+            stopChasing = true;
+        }
+        else {
+            stopChasing = false;
+        }
     }
 
     private void HandleGroundMovement() {
@@ -167,10 +168,12 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private IEnumerator DisablePlatformCollision() {
-        float dropDuration = 0.4f;
+        float dropDuration = 0.3f;
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
+        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, true);
         yield return new WaitForSeconds(dropDuration);
         Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
+        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, false);
         disableCollisionCoroutine = null;
     }
 

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine.XR;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -8,6 +9,8 @@ public class PlayerMovement : MonoBehaviour {
     public event EventHandler OnJump;
     public event EventHandler OnAirJump;
     public event EventHandler OnWallJump;
+    public event EventHandler OnDash;
+    public event EventHandler OnDashEnd;
     public event EventHandler OnLanded;
     public event EventHandler OnFlip;
     public event EventHandler OnStartMovingSameDirection;
@@ -27,13 +30,15 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float jumpCutMultiplier = 0.5f;
     [SerializeField] private int maxJumpCount = 2;
     [SerializeField] private int jumpRemaining;
-    private bool isJumping; // request flag, applied in FixedUpdate
+    private bool jumpFlag; // request flag, applied in FixedUpdate
 
-    [Header("Gravity")]
-    [SerializeField] private float baseGravity = 3f;
-    [SerializeField] private float maxFallSpeed = 30f;
-    [SerializeField] private float fallMultiplier = 3f;
-    private bool isFalling;
+    [Header("Dash")]
+    [SerializeField] private float dashSpeed = 50f;
+    [SerializeField] private float dashDuration = 0.25f;
+    [SerializeField] private float dashCooldown = 3f;
+    private bool dashFlag; // request flag, applied in FixedUpdate
+    private bool canDash = true;
+    private bool isDasing;
 
     [Header("Land Check")]
     // Land
@@ -45,6 +50,7 @@ public class PlayerMovement : MonoBehaviour {
     // Platform
     [SerializeField] private LayerMask platformLayer;
     [SerializeField] private CompositeCollider2D platformCollider;
+    [SerializeField] private BoxCollider2D movingPlatformCollider;
     private bool isOnPlatform;
     private Coroutine disableCollisionCoroutine;
 
@@ -60,18 +66,26 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float wallSlideSpeed = 3f;
     private bool isWallSliding;
     // Wall Jump
-    private bool isWallJumping;       // request flag
-    private bool wallJumpLock;        // persistent movement lock
+    private bool wallJumpFlag;       // request flag, applied in FixedUpdate
+    private bool isWallJumping;        // persistent movement lock
     private float wallJumpDirection;  // +1 right, -1 left
     private float wallJumpCoyoteCounter; // counter count down
     [SerializeField] private float wallJumpCoyoteTime = 0.1f; // duration of be able to wall jump after leaving wall
     [SerializeField] private float wallJumpLockTime = 0.2f; // movement lock duration after wall jump
     [SerializeField] private Vector2 wallJumpPower;
 
+    [Header("Gravity")]
+    [SerializeField] private float baseGravity = 3f;
+    [SerializeField] private float maxFallSpeed = 30f;
+    [SerializeField] private float fallMultiplier = 3f;
+    private bool isFalling;
+
+
     [Header("PowerUp")] // Add timer
     [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
     [SerializeField] private float powerUpJumpIncrease = 10f;
     [SerializeField] private int powerUpMaxJumpIncrease = 1;
+    [SerializeField] private float powerUpDashIncrease = 25f;
 
     [Header("Knockback")]
     [SerializeField] private float knockbackForce = 15f;
@@ -93,23 +107,28 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void Update() {
-        if (!canMove) return; // movement locked during knockback
+        if (!canMove || isDasing) return; // movement locked during knockback
 
         HandleJumpInput();
+        HandleDashInput();
     }
 
     private void FixedUpdate() {
         // movement locked during knockback
         if (canMove) {
-            ApplyJump();
-            ApplyWallJump();
-            ProcessWallSlide();
-            ProcessWallJumpCoyote();
+            ApplyDash();
+            if (!isDasing) {
+                ApplyJump();
+                ApplyWallJump();
+                ProcessWallSlide();
+                ProcessWallJumpCoyote();
+                ApplyFallGravity();
 
-            // normal movement only if not wall-jump locked
-            if (!wallJumpLock) {
-                HandleMovementInput();
-                Flip();
+                // normal movement only if not wall-jump locked
+                if (!isWallJumping) {
+                    HandleMovementInput();
+                    Flip();
+                }
             }
         }
 
@@ -117,60 +136,6 @@ public class PlayerMovement : MonoBehaviour {
         OnLandCheck();
         WallCheck();
         PlatformCheck();
-        ApplyFallGravity();
-    }
-
-    private void HandleJumpInput() {
-        // Normal jump (ground or mid-air double jump)
-        if (GameInput.Instance.WasJumpActionPerformed() && jumpRemaining > 0 && wallJumpCoyoteCounter <= 0f) {
-            isJumping = true;
-            jumpRemaining--;
-
-            // If not grounded then this is a air-jump
-            if (!isOnLand) {
-                OnAirJump?.Invoke(this, EventArgs.Empty);
-            }
-            else {
-                OnJump?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        // Short-tap jump cut (light jump)
-        if (GameInput.Instance.IsJumpActionReleased() && myRigidBody.linearVelocityY > 0f) {
-            myRigidBody.linearVelocityY *= jumpCutMultiplier;
-        }
-
-        // Wall jump (only while sliding or within coyote window)
-        if (GameInput.Instance.WasJumpActionPerformed() && wallJumpCoyoteCounter > 0f) {
-            isWallJumping = true;
-            wallJumpLock = true;
-            wallJumpCoyoteCounter = 0f;
-            isWallSliding = false; // stop wall-slide state immediately and trigger jump animation
-
-            OnWallJump?.Invoke(this, EventArgs.Empty);
-
-            Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
-        }
-    }
-
-    private void ApplyJump() {
-        if (!isJumping) return;
-
-        myRigidBody.linearVelocityY = jumpPower;
-        isJumping = false;
-    }
-
-    private void ApplyWallJump() {
-        if (!isWallJumping) return;
-
-        // Flip toward jump direction
-        FlipCharacter(wallJumpDirection > 0f);
-        isMovingRight = wallJumpDirection > 0f;
-
-        // Apply jump velocity
-        myRigidBody.linearVelocity = new Vector2(wallJumpDirection * moveSpeed, jumpPower);
-
-        isWallJumping = false;
     }
 
     private void HandleMovementInput() {
@@ -206,6 +171,94 @@ public class PlayerMovement : MonoBehaviour {
         }
     }
 
+    private void HandleJumpInput() {
+        // Normal jump (ground or mid-air double jump)
+        if (GameInput.Instance.WasJumpActionPerformed() && jumpRemaining > 0 && wallJumpCoyoteCounter <= 0f) {
+            jumpFlag = true;
+            jumpRemaining--;
+
+            // If not grounded then this is a air-jump
+            if (!isOnLand) {
+                OnAirJump?.Invoke(this, EventArgs.Empty);
+            }
+            else {
+                OnJump?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        // Short-tap jump cut (light jump)
+        if (GameInput.Instance.IsJumpActionReleased() && myRigidBody.linearVelocityY > 0f) {
+            myRigidBody.linearVelocityY *= jumpCutMultiplier;
+        }
+
+        // Wall jump (only while sliding or within coyote window)
+        if (GameInput.Instance.WasJumpActionPerformed() && wallJumpCoyoteCounter > 0f) {
+            wallJumpFlag = true;
+            isWallJumping = true;
+            wallJumpCoyoteCounter = 0f;
+            isWallSliding = false; // stop wall-slide state immediately and trigger jump animation
+
+            OnWallJump?.Invoke(this, EventArgs.Empty);
+
+            Invoke(nameof(CancelWallJumpLock), wallJumpLockTime);
+        }
+    }
+
+    private void ApplyJump() {
+        if (!jumpFlag) return;
+
+        myRigidBody.linearVelocityY = jumpPower;
+        jumpFlag = false;
+    }
+
+    private void ApplyWallJump() {
+        if (!wallJumpFlag) return;
+
+        // Flip toward jump direction
+        FlipCharacter(wallJumpDirection > 0f);
+        isMovingRight = wallJumpDirection > 0f;
+
+        // Apply jump velocity
+        myRigidBody.linearVelocity = new Vector2(wallJumpDirection * moveSpeed, jumpPower);
+
+        wallJumpFlag = false;
+    }
+
+    private void HandleDashInput() {
+        if (GameInput.Instance.WasDashActionPerformed() && canDash) {
+            dashFlag = true;
+        }
+    }
+
+    private void ApplyDash() {
+        if (!dashFlag) return;
+        StartCoroutine(DashCoroutine());
+        dashFlag = false;
+    }
+
+    private IEnumerator DashCoroutine() {
+        Physics2D.IgnoreLayerCollision(8, 9, true);
+        canDash = false;
+        isDasing = true;
+        OnDash?.Invoke(this, EventArgs.Empty);
+
+        myRigidBody.gravityScale = 0f;
+        myRigidBody.linearVelocityY = 0f;
+        float dashDirection = isMovingRight ? 1f : -1f;
+        myRigidBody.linearVelocityX = dashDirection * dashSpeed; // Dash movement
+
+        yield return new WaitForSeconds(dashDuration);
+
+        myRigidBody.linearVelocityX = 0f; // Stop movement
+        myRigidBody.gravityScale = baseGravity;
+        isDasing = false;
+        OnDashEnd?.Invoke(this, EventArgs.Empty);
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
+    }
+
     private void ProcessWallSlide() {
         // Slide only when airborne and touching a wall
         if (!wasOnLand && isOnWall &&
@@ -233,15 +286,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void CancelWallJumpLock() {
-        wallJumpLock = false;
-    }
-
-    private IEnumerator DisablePlatformCollision() {
-        float dropDuration = 0.4f;
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
-        yield return new WaitForSeconds(dropDuration);
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
-        disableCollisionCoroutine = null;
+        isWallJumping = false;
     }
 
     private void TriggerDisablePlatformCollision() {
@@ -249,6 +294,16 @@ public class PlayerMovement : MonoBehaviour {
             StopCoroutine(disableCollisionCoroutine);
 
         disableCollisionCoroutine = StartCoroutine(DisablePlatformCollision());
+    }
+
+    private IEnumerator DisablePlatformCollision() {
+        float dropDuration = 0.3f;
+        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
+        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, true);
+        yield return new WaitForSeconds(dropDuration);
+        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
+        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, false);
+        disableCollisionCoroutine = null;
     }
 
     private void OnLandCheck() {
@@ -302,12 +357,14 @@ public class PlayerMovement : MonoBehaviour {
         moveSpeed += powerUpMoveSpeedIncrease;
         jumpPower += powerUpJumpIncrease;
         maxJumpCount += powerUpMaxJumpIncrease;
+        dashSpeed += powerUpDashIncrease;
     }
 
     private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
         moveSpeed -= powerUpMoveSpeedIncrease;
         jumpPower -= powerUpJumpIncrease;
         maxJumpCount -= powerUpMaxJumpIncrease;
+        dashSpeed -= powerUpDashIncrease;
     }
 
     public void OnHitByEnemy(Vector3 enemyPosition) {

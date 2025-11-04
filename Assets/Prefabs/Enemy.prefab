@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4323616409648948125}
   - component: {fileID: 8085201007999580771}
   - component: {fileID: 8923980587125800445}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: EnemySprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -122,7 +122,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 741182215310753281}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: SideCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -158,7 +158,7 @@ GameObject:
   - component: {fileID: 6024679379043331139}
   - component: {fileID: 9215415513547801822}
   - component: {fileID: 4530770302446543182}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -270,9 +270,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   moveSpeed: 5
   jumpPower: 30
-  chaseRange: 15
-  playerAboveCheckDistance: 15
-  playerBelowCheckDistance: 15
+  chaseRange: 30
+  playerAboveCheckDistance: 30
+  playerBelowCheckDistance: 30
   landAboveCheckDistance: 7
   frontCheckDistance: 2
   gapCheckDistance: 2
@@ -322,10 +322,12 @@ MonoBehaviour:
   sideCheckSize: {x: 4, y: 2}
   lootTable:
   - itemPrefab: {fileID: 6313392762327710973, guid: b11442b1126888f4bba8bc71dc90aa08, type: 3}
-    dropChance: 60
-  - itemPrefab: {fileID: 6313392762327710973, guid: 6af732241a3df644cbfa9d7884c3ae8e, type: 3}
     dropChance: 80
+  - itemPrefab: {fileID: 6313392762327710973, guid: 6af732241a3df644cbfa9d7884c3ae8e, type: 3}
+    dropChance: 85
   - itemPrefab: {fileID: 4005978683148637611, guid: 168aa5678f08b314495b5199104d79af, type: 3}
+    dropChance: 95
+  - itemPrefab: {fileID: 4005978683148637611, guid: 6b4139486ea750149ab65f1738a0b67a, type: 3}
     dropChance: 100
 --- !u!1 &6755897466424369098
 GameObject:
@@ -336,7 +338,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2884067542669801038}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: LandCheck
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -48,19 +48,19 @@ public class PlayerShoot : MonoBehaviour {
         GameObject bullet = Instantiate(bulletPrefab, transform.position, bulletRotation);
         bullet.GetComponent<Rigidbody2D>().linearVelocity = shootDirection * bulletSpeed;
 
-        Destroy(bullet, 1f);
+        Destroy(bullet, 0.5f);
 
         yield return new WaitForSeconds(1f / fireRate);
         canShoot = true;
     }
 
     private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
-        bulletSpeed += 20f;
+        bulletSpeed += 30f;
         fireRate += 1f;
     }
 
     private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
-        bulletSpeed -= 20f;
+        bulletSpeed -= 30f;
         fireRate -= 1f;
     }
 

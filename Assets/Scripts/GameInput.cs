@@ -57,4 +57,8 @@ public class GameInput : MonoBehaviour {
     public bool WasShootActionPerformed() {
         return inputActions.Player.Shoot.WasPerformedThisFrame();
     }
+
+    public bool WasDashActionPerformed() {
+        return inputActions.Player.Dash.WasPerformedThisFrame();
+    }
 }

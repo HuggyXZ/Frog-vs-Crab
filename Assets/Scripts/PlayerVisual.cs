@@ -8,6 +8,7 @@ public class PlayerVisual : MonoBehaviour {
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystem smokeFX;
+    [SerializeField] private TrailRenderer trailRenderer;
 
     private bool powerUp;
 
@@ -24,6 +25,8 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnJump += Player_OnJump;
         PlayerMovement.Instance.OnAirJump += Player_OnAirJump;
         PlayerMovement.Instance.OnWallJump += Player_OnWallJump;
+        PlayerMovement.Instance.OnDash += Player_OnDash;
+        PlayerMovement.Instance.OnDashEnd += Player_OnDashEnd;
         PlayerMovement.Instance.OnLanded += Player_OnLanded;
         PlayerMovement.Instance.OnFlip += Player_OnFlip;
         Star.OnStarCollect += Star_OnStarCollect;
@@ -64,6 +67,16 @@ public class PlayerVisual : MonoBehaviour {
         animator.SetTrigger("wallJumpTrigger");
         smokeFX.Play();
     }
+
+    private void Player_OnDash(object sender, EventArgs e) {
+        animator.SetTrigger("dashTrigger");
+        trailRenderer.emitting = true;
+    }
+
+    private void Player_OnDashEnd(object sender, EventArgs e) {
+        trailRenderer.emitting = false;
+    }
+
     private void Player_OnLanded(object sender, EventArgs e) {
         animator.SetTrigger("landTrigger");
     }
