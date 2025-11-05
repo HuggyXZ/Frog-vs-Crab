@@ -34,6 +34,7 @@ public class EnemyMovement : MonoBehaviour {
     [SerializeField] private Vector2 landCheckSize = new Vector2(2f, 0.025f);
     // Platform
     [SerializeField] private LayerMask platformLayer;
+    [SerializeField] private LayerMask movingPlatformLayer;
     private CompositeCollider2D platformCollider;
     private BoxCollider2D movingPlatformCollider;
     private Coroutine disableCollisionCoroutine;
@@ -60,7 +61,6 @@ public class EnemyMovement : MonoBehaviour {
         playerTransform = PlayerMovement.Instance.transform;
         playerCollider = playerTransform.GetComponent<BoxCollider2D>();
         platformCollider = Platform.Instance.GetComponent<CompositeCollider2D>();
-        movingPlatformCollider = MovingPlatform.Instance.GetComponent<BoxCollider2D>();
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
         enemyStats.OnDie += EnemyStats_OnDie;
     }
@@ -153,10 +153,12 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void DecideDroppingDown() {
+
         if (!isOnLand || isPlayerDirectlyAbove || !isPlayerAnyBelow) return;
 
         if (isPlayerDirectlyBelow && isOnPlatform) {
             TriggerDisablePlatformCollision();
+            Debug.Log("EnemyTriggerDisablePlatformCollision()");
         }
     }
 
@@ -168,12 +170,14 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private IEnumerator DisablePlatformCollision() {
-        float dropDuration = 0.3f;
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
-        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, true);
+        float dropDuration = 0.4f;
+
+        Collider2D movingPlatform = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, movingPlatformLayer);
+        Collider2D platform = movingPlatform != null ? movingPlatform : platformCollider;
+
+        Physics2D.IgnoreCollision(myBoxCollider, platform, true);
         yield return new WaitForSeconds(dropDuration);
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
-        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, false);
+        Physics2D.IgnoreCollision(myBoxCollider, platform, false);
         disableCollisionCoroutine = null;
     }
 

@@ -1,20 +1,22 @@
 using UnityEngine;
 
 public class MovingPlatform : MonoBehaviour {
-    public static MovingPlatform Instance { get; private set; }
     [SerializeField] private Transform pointA;
     [SerializeField] private Transform pointB;
     [SerializeField] private float moveSpeed = 2f;
 
     private Vector3 targetPosition;
-    private bool movingToB = true;
 
-    void Awake() {
-        Instance = this;
-    }
+    // Store the world positions at start
+    private Vector3 pointAWorld;
+    private Vector3 pointBWorld;
 
     void Start() {
-        targetPosition = pointB.position;
+        pointAWorld = pointA.position;
+        pointBWorld = pointB.position;
+
+        transform.position = pointAWorld; // Start at pointA
+        targetPosition = pointBWorld;
     }
 
     void Update() {
@@ -22,20 +24,31 @@ public class MovingPlatform : MonoBehaviour {
 
         // Check if close enough to switch
         if (transform.position == targetPosition) {
-            movingToB = !movingToB; // flip direction
-            targetPosition = movingToB ? pointB.position : pointA.position;
+            targetPosition = (targetPosition == pointAWorld) ? pointBWorld : pointAWorld;
         }
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
         if (collision.gameObject.TryGetComponent(out PlayerMovement playerMovement)) {
             playerMovement.transform.SetParent(transform);
+            playerMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
+        }
+
+        if (collision.gameObject.TryGetComponent(out EnemyMovement enemyMovement)) {
+            enemyMovement.transform.SetParent(transform);
+            enemyMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
         }
     }
 
     private void OnCollisionExit2D(Collision2D collision) {
         if (collision.gameObject.TryGetComponent(out PlayerMovement playerMovement)) {
             playerMovement.transform.SetParent(null);
+            playerMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
+        }
+
+        if (collision.gameObject.TryGetComponent(out EnemyMovement enemyMovement)) {
+            enemyMovement.transform.SetParent(null);
+            enemyMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
         }
     }
 }

@@ -42,8 +42,8 @@ public class GameInput : MonoBehaviour {
         return inputActions.Player.Jump.WasReleasedThisFrame();
     }
 
-    public bool IsDownActionPressed() {
-        return inputActions.Player.MoveDown.IsPressed();
+    public bool WasDownActionPerformed() {
+        return inputActions.Player.MoveDown.WasPerformedThisFrame();
     }
 
     public bool IsHoldActionPressed() {

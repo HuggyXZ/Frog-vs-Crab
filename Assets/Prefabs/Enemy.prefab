@@ -78,7 +78,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1295116973
-  m_SortingLayer: -1
+  m_SortingLayer: -4
   m_SortingOrder: 0
   m_Sprite: {fileID: 7979084967657331261, guid: f3021cc7c69525c4387cd0efa5b7bfe2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -281,12 +281,15 @@ MonoBehaviour:
     m_Bits: 256
   landLayer:
     serializedVersion: 2
-    m_Bits: 136
+    m_Bits: 1160
   landCheck: {fileID: 2884067542669801038}
   landCheckSize: {x: 1.5, y: 0.025}
   platformLayer:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 1152
+  movingPlatformLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!114 &9215415513547801822
 MonoBehaviour:
   m_ObjectHideFlags: 0

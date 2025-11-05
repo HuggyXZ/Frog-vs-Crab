@@ -100,6 +100,9 @@ public class EnemyStats : MonoBehaviour {
         OnDie?.Invoke();
         canAttack = false;
         canDamage = false;
+        Physics2D.IgnoreLayerCollision(8, 9, true);
+        Physics2D.IgnoreLayerCollision(9, 9, true);
+
         foreach (LootItem lootItem in lootTable) {
             if (Random.Range(0f, 100f) <= lootItem.dropChance) {
                 InstantiateLoot(lootItem.itemPrefab);
@@ -108,6 +111,8 @@ public class EnemyStats : MonoBehaviour {
         }
         float dieDuration = 1f;
         yield return new WaitForSeconds(dieDuration);
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+        Physics2D.IgnoreLayerCollision(9, 9, false);
         Destroy(gameObject);
     }
 

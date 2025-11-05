@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 using UnityEngine.XR;
+using System.Collections.Generic;
+using UnityEngine.Networking;
 
 public class PlayerMovement : MonoBehaviour {
     public static PlayerMovement Instance { get; private set; }
@@ -24,6 +26,7 @@ public class PlayerMovement : MonoBehaviour {
     private bool isFacingRight = true;
     private float stopMovingTimer = 0f; // timer count up
     [SerializeField] private float stopMovingThreshold = 1f; // seconds of standing still to consider "stopped moving"
+    private bool downFlag;
 
     [Header("Jump")]
     [SerializeField] private float jumpPower = 30f;
@@ -49,8 +52,8 @@ public class PlayerMovement : MonoBehaviour {
     private bool wasOnLand;
     // Platform
     [SerializeField] private LayerMask platformLayer;
+    [SerializeField] private LayerMask movingPlatformLayer;
     [SerializeField] private CompositeCollider2D platformCollider;
-    [SerializeField] private BoxCollider2D movingPlatformCollider;
     private bool isOnPlatform;
     private Coroutine disableCollisionCoroutine;
 
@@ -103,13 +106,13 @@ public class PlayerMovement : MonoBehaviour {
         HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
         HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
-        jumpRemaining = maxJumpCount;
     }
 
     private void Update() {
         if (!canMove || isDasing) return; // movement locked during knockback
 
         HandleJumpInput();
+        HandleDownInput();
         HandleDashInput();
     }
 
@@ -120,6 +123,7 @@ public class PlayerMovement : MonoBehaviour {
             if (!isDasing) {
                 ApplyJump();
                 ApplyWallJump();
+                ApplyDown();
                 ProcessWallSlide();
                 ProcessWallJumpCoyote();
                 ApplyFallGravity();
@@ -164,10 +168,6 @@ public class PlayerMovement : MonoBehaviour {
         else {
             myRigidBody.linearVelocityX = 0f;
             stopMovingTimer += Time.deltaTime;
-        }
-
-        if (GameInput.Instance.IsDownActionPressed() && isOnPlatform) {
-            TriggerDisablePlatformCollision();
         }
     }
 
@@ -222,6 +222,18 @@ public class PlayerMovement : MonoBehaviour {
         myRigidBody.linearVelocity = new Vector2(wallJumpDirection * moveSpeed, jumpPower);
 
         wallJumpFlag = false;
+    }
+
+    private void HandleDownInput() {
+        if (GameInput.Instance.WasDownActionPerformed() && isOnPlatform) {
+            downFlag = true;
+        }
+    }
+
+    private void ApplyDown() {
+        if (!downFlag) return;
+        TriggerDisablePlatformCollision();
+        downFlag = false;
     }
 
     private void HandleDashInput() {
@@ -297,12 +309,14 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private IEnumerator DisablePlatformCollision() {
-        float dropDuration = 0.3f;
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, true);
-        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, true);
+        float dropDuration = 0.4f;
+
+        Collider2D movingPlatform = Physics2D.OverlapBox(landCheck.position, landCheckSize, 0f, movingPlatformLayer);
+        Collider2D platform = movingPlatform != null ? movingPlatform : platformCollider;
+
+        Physics2D.IgnoreCollision(myBoxCollider, platform, true);
         yield return new WaitForSeconds(dropDuration);
-        Physics2D.IgnoreCollision(myBoxCollider, platformCollider, false);
-        Physics2D.IgnoreCollision(myBoxCollider, movingPlatformCollider, false);
+        Physics2D.IgnoreCollision(myBoxCollider, platform, false);
         disableCollisionCoroutine = null;
     }
 
