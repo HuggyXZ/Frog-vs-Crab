@@ -2,13 +2,13 @@ using UnityEngine;
 using System;
 
 public class HealthItem : MonoBehaviour, IItem {
-    public static event Action<int> OnHealthCollect;
+    public static event Action<int, int> OnHealthCollect;
 
-    [SerializeField] private int healthAmount = 1;
+    [SerializeField] private int healthIncrease = 1;
+    [SerializeField] private int maxHealthIncrease = 1;
 
     public void Collect() {
-        if (PlayerHealth.Instance.GetCurrentHealth() >= PlayerHealth.Instance.GetMaxHealth()) return;
-        OnHealthCollect?.Invoke(healthAmount);
+        OnHealthCollect?.Invoke(healthIncrease, maxHealthIncrease);
         Destroy(gameObject);
     }
 }

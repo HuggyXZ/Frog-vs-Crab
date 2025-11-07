@@ -25,8 +25,9 @@ public class PlayerMovement : MonoBehaviour {
     private bool isMovingRight = true; // input direction for Flip()
     private bool isFacingRight = true;
     private float stopMovingTimer = 0f; // timer count up
-    [SerializeField] private float stopMovingThreshold = 1f; // seconds of standing still to consider "stopped moving"
+    [SerializeField] private float stopMovingThreshold = 1f; // seconds of standing still to consider "stopped moving" for smokeFX
     private bool downFlag;
+    private bool canMove = true;
 
     [Header("Jump")]
     [SerializeField] private float jumpPower = 30f;
@@ -83,19 +84,6 @@ public class PlayerMovement : MonoBehaviour {
     [SerializeField] private float fallMultiplier = 3f;
     private bool isFalling;
 
-
-    [Header("PowerUp")] // Add timer
-    [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
-    [SerializeField] private float powerUpJumpIncrease = 10f;
-    [SerializeField] private int powerUpMaxJumpIncrease = 1;
-    [SerializeField] private float powerUpDashIncrease = 25f;
-
-    [Header("Knockback")]
-    [SerializeField] private float knockbackForce = 15f;
-    [SerializeField] private float knockbackUpward = 10f;
-    [SerializeField] private float knockbackDuration = 0.5f;
-    private bool canMove = true;
-
     private void Awake() {
         Instance = this;
         myRigidBody = GetComponent<Rigidbody2D>();
@@ -103,7 +91,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void Start() {
-        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpStart += HoldToPowerUp_OnPowerUp;
         HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
@@ -368,31 +356,42 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
-        moveSpeed += powerUpMoveSpeedIncrease;
-        jumpPower += powerUpJumpIncrease;
-        maxJumpCount += powerUpMaxJumpIncrease;
-        dashSpeed += powerUpDashIncrease;
+        moveSpeed += HoldToPowerUp.Instance.GetPowerUpMoveSpeedIncrease();
+        jumpPower += HoldToPowerUp.Instance.GetPowerUpJumpIncrease();
+        maxJumpCount += HoldToPowerUp.Instance.GetPowerUpMaxJumpIncrease();
+        dashSpeed += HoldToPowerUp.Instance.GetPowerUpDashIncrease();
     }
 
     private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
-        moveSpeed -= powerUpMoveSpeedIncrease;
-        jumpPower -= powerUpJumpIncrease;
-        maxJumpCount -= powerUpMaxJumpIncrease;
-        dashSpeed -= powerUpDashIncrease;
+        moveSpeed -= HoldToPowerUp.Instance.GetPowerUpMoveSpeedIncrease();
+        jumpPower -= HoldToPowerUp.Instance.GetPowerUpJumpIncrease();
+        maxJumpCount -= HoldToPowerUp.Instance.GetPowerUpMaxJumpIncrease();
+        dashSpeed -= HoldToPowerUp.Instance.GetPowerUpDashIncrease();
     }
 
     public void OnHitByEnemy(Vector3 enemyPosition) {
+        float knockbackForce = 15f;
+        float knockbackUpward = 10f;
         // Calculate direction away from enemy
         Vector2 knockDirection = (transform.position - enemyPosition).normalized;
 
         // Apply instant knockback
+        myRigidBody.linearVelocity = Vector2.zero;
         myRigidBody.linearVelocity = new Vector2(knockDirection.x * knockbackForce, knockbackUpward);
 
         // Disable movement temporarily
-        StartCoroutine(HandleKnockback());
+        StartCoroutine(HandleEnemyKnockback());
     }
 
-    private IEnumerator HandleKnockback() {
+    private IEnumerator HandleEnemyKnockback() {
+        float knockbackDuration = 0.5f;
+        canMove = false;
+        yield return new WaitForSeconds(knockbackDuration);
+        canMove = true;
+    }
+
+    public IEnumerator HandleSpikeTrapKnockback() {
+        float knockbackDuration = 0.2f;
         canMove = false;
         yield return new WaitForSeconds(knockbackDuration);
         canMove = true;
@@ -421,7 +420,7 @@ public class PlayerMovement : MonoBehaviour {
     public bool GetIsWallSliding() { return isWallSliding; }
 
     private void OnDisable() {
-        HoldToPowerUp.Instance.OnPowerUp -= HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpStart -= HoldToPowerUp_OnPowerUp;
         HoldToPowerUp.Instance.OnPowerUpEnd -= HoldToPowerUp_OnPowerUpEnd;
         PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
     }

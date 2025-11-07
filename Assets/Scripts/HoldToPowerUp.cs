@@ -6,7 +6,7 @@ using System.Collections;
 public class HoldToPowerUp : MonoBehaviour {
     public static HoldToPowerUp Instance { get; private set; }
 
-    public event EventHandler OnPowerUp;
+    public event EventHandler OnPowerUpStart;
     public event EventHandler OnPowerUpEnd;
 
     [SerializeField] private Image fillCircle;
@@ -17,8 +17,13 @@ public class HoldToPowerUp : MonoBehaviour {
     [SerializeField] private float holdTime = 3f; // How long to hold to activate
     private float holdTimer;
 
+    [Header("PowerUp")]
     [SerializeField] private float powerUpTime = 15f;
     private float powerUpCounter;
+    [SerializeField] private float powerUpMoveSpeedIncrease = 5f;
+    [SerializeField] private float powerUpJumpIncrease = 10f;
+    [SerializeField] private int powerUpMaxJumpIncrease = 1;
+    [SerializeField] private float powerUpDashIncrease = 25f;
 
     private void Awake() {
         Instance = this;
@@ -43,7 +48,7 @@ public class HoldToPowerUp : MonoBehaviour {
             fillCircle.fillAmount = holdTimer / holdTime;
 
             if (holdTimer >= holdTime) {
-                OnPowerUp?.Invoke(this, EventArgs.Empty);
+                OnPowerUpStart?.Invoke(this, EventArgs.Empty);
                 fillCircle.fillAmount = 1;
                 fillCircleRectTransform.localScale = new Vector3(-1, 1, 1);
                 StartCoroutine(PowerUpDuration());
@@ -74,6 +79,14 @@ public class HoldToPowerUp : MonoBehaviour {
     private void GameManager_OnPowerUpReady(object sender, EventArgs e) {
         canHold = true;
     }
+
+    public bool GetCanHold() { return canHold; }
+    public float GetCircleFillAmount() { return fillCircle.fillAmount; }
+
+    public float GetPowerUpMoveSpeedIncrease() { return powerUpMoveSpeedIncrease; }
+    public float GetPowerUpJumpIncrease() { return powerUpJumpIncrease; }
+    public int GetPowerUpMaxJumpIncrease() { return powerUpMaxJumpIncrease; }
+    public float GetPowerUpDashIncrease() { return powerUpDashIncrease; }
 
     private void OnDisable() {
         GameManager.Instance.OnPowerUpReady -= GameManager_OnPowerUpReady;

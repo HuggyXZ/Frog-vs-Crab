@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6723910888033614073}
   - component: {fileID: 6076094645377312448}
   - component: {fileID: 8311605049118795363}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: SmallStar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 3567058110242702902}
   - component: {fileID: 7848520270984244009}
   - component: {fileID: 2528963541475155862}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: StarSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,9 +160,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 113090807
+  m_SortingLayerID: 1461809975
   m_SortingLayer: -6
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: 5199979006384268662, guid: 6d41a8ada223beb42a18b3a754ff0e9c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

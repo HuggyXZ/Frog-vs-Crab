@@ -158,7 +158,6 @@ public class EnemyMovement : MonoBehaviour {
 
         if (isPlayerDirectlyBelow && isOnPlatform) {
             TriggerDisablePlatformCollision();
-            Debug.Log("EnemyTriggerDisablePlatformCollision()");
         }
     }
 

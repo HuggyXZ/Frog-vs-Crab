@@ -17,7 +17,7 @@ TagManager:
   - Player
   - Enemy
   - MovingPlatform
-  - 
+  - ItemPickUp
   - 
   - 
   - 
@@ -42,20 +42,32 @@ TagManager:
   - name: Backgound
     uniqueID: 81252891
     locked: 0
+  - name: Decoration
+    uniqueID: 2675726749
+    locked: 0
   - name: Tilemap
     uniqueID: 3847683759
+    locked: 0
+  - name: Trap
+    uniqueID: 3691370931
     locked: 0
   - name: MovingPlatform
     uniqueID: 2957991835
     locked: 0
-  - name: BigStar
-    uniqueID: 1714570213
+  - name: BigHealthItem
+    uniqueID: 334537117
     locked: 0
-  - name: SmallStar
+  - name: BigStar
     uniqueID: 113090807
     locked: 0
-  - name: HealthItem
-    uniqueID: 334537117
+  - name: SmallHealthItem
+    uniqueID: 77428115
+    locked: 0
+  - name: SmallStar
+    uniqueID: 1461809975
+    locked: 0
+  - name: WizardHat
+    uniqueID: 1714570213
     locked: 0
   - name: Enemy
     uniqueID: 2999850323

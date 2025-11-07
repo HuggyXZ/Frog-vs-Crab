@@ -4,6 +4,7 @@ using System;
 public class PlayerCollector : MonoBehaviour {
     public static PlayerCollector Instance { get; private set; }
 
+    public event EventHandler OnItemCollect;
     private void Awake() {
         Instance = this;
     }
@@ -14,6 +15,7 @@ public class PlayerCollector : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.TryGetComponent(out IItem item)) {
+            OnItemCollect?.Invoke(this, EventArgs.Empty);
             item.Collect();
         }
     }

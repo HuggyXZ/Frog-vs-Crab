@@ -29,26 +29,26 @@ public class MovingPlatform : MonoBehaviour {
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject.TryGetComponent(out PlayerMovement playerMovement)) {
-            playerMovement.transform.SetParent(transform);
-            playerMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
+        if (collision.gameObject.TryGetComponent(out PlayerMovement player)) {
+            player.transform.SetParent(transform);
+            player.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
         }
 
-        if (collision.gameObject.TryGetComponent(out EnemyMovement enemyMovement)) {
-            enemyMovement.transform.SetParent(transform);
-            enemyMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
+        if (collision.gameObject.TryGetComponent(out EnemyMovement enemy)) {
+            enemy.transform.SetParent(transform);
+            enemy.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.None;
         }
     }
 
     private void OnCollisionExit2D(Collision2D collision) {
-        if (collision.gameObject.TryGetComponent(out PlayerMovement playerMovement)) {
-            playerMovement.transform.SetParent(null);
-            playerMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
+        if (collision.gameObject.TryGetComponent(out PlayerMovement player)) {
+            player.transform.SetParent(null);
+            player.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
         }
 
-        if (collision.gameObject.TryGetComponent(out EnemyMovement enemyMovement)) {
-            enemyMovement.transform.SetParent(null);
-            enemyMovement.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
+        if (collision.gameObject.TryGetComponent(out EnemyMovement enemy)) {
+            enemy.transform.SetParent(null);
+            enemy.GetComponent<Rigidbody2D>().interpolation = RigidbodyInterpolation2D.Interpolate;
         }
     }
 }

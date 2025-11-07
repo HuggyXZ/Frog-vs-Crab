@@ -317,7 +317,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStats
   damage: 1
-  Maxhealth: 3
+  Maxhealth: 30
   playerLayer:
     serializedVersion: 2
     m_Bits: 256

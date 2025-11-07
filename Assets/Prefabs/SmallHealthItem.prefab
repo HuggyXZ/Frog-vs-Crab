@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2827519894818323844}
   - component: {fileID: 317689816424295273}
   - component: {fileID: 6496333060202899654}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: SmallHealthItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -82,7 +82,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 92c24a68e17e00946a20cc2c16fdfc0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  healthAmount: 1
+  healthIncrease: 0
+  maxHealthIncrease: 1
 --- !u!1 &4651784249835069786
 GameObject:
   m_ObjectHideFlags: 0
@@ -94,7 +95,7 @@ GameObject:
   - component: {fileID: 5636712777838048204}
   - component: {fileID: 1469701176817396041}
   - component: {fileID: 8845629480159062487}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: HealthSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,9 +161,9 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: 77428115
+  m_SortingLayer: -7
+  m_SortingOrder: 5
   m_Sprite: {fileID: -5807300337447395838, guid: 0f4f15b1609feba43bbd99713c36e83b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

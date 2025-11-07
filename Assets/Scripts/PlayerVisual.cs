@@ -8,6 +8,7 @@ public class PlayerVisual : MonoBehaviour {
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ParticleSystem smokeFX;
+    [SerializeField] private ParticleSystem powerUpFX;
     [SerializeField] private TrailRenderer trailRenderer;
 
     private bool powerUp;
@@ -22,17 +23,16 @@ public class PlayerVisual : MonoBehaviour {
 
     private void Start() {
         // Subscribe to player events
-        PlayerMovement.Instance.OnJump += Player_OnJump;
-        PlayerMovement.Instance.OnAirJump += Player_OnAirJump;
-        PlayerMovement.Instance.OnWallJump += Player_OnWallJump;
-        PlayerMovement.Instance.OnDash += Player_OnDash;
-        PlayerMovement.Instance.OnDashEnd += Player_OnDashEnd;
-        PlayerMovement.Instance.OnLanded += Player_OnLanded;
-        PlayerMovement.Instance.OnFlip += Player_OnFlip;
-        Star.OnStarCollect += Star_OnStarCollect;
-        HealthItem.OnHealthCollect += HealthItem_OnHealthCollect;
+        PlayerMovement.Instance.OnJump += PlayerMovement_OnJump;
+        PlayerMovement.Instance.OnAirJump += PlayerMovement_OnAirJump;
+        PlayerMovement.Instance.OnWallJump += PlayerMovement_OnWallJump;
+        PlayerMovement.Instance.OnDash += PlayerMovement_OnDash;
+        PlayerMovement.Instance.OnDashEnd += PlayerMovement_OnDashEnd;
+        PlayerMovement.Instance.OnLanded += PlayerMovement_OnLanded;
+        PlayerMovement.Instance.OnFlip += PlayerMovement_OnFlip;
+        PlayerCollector.Instance.OnItemCollect += PlayerCollector_OnItemCollect;
         PlayerShoot.Instance.OnShoot += PlayerShoot_OnShoot;
-        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpStart += HoldToPowerUp_OnPowerUpStart;
         HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
         PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
@@ -41,9 +41,12 @@ public class PlayerVisual : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         // DON'T update physics-derived animator params here.
-
         if (timeSinceLastFlip <= minSmokeFXTime) {
             timeSinceLastFlip += Time.deltaTime;
+        }
+
+        if (HoldToPowerUp.Instance.GetCanHold() && !powerUp) {
+            spriteRenderer.color = Color.Lerp(Color.white, Color.yellow, HoldToPowerUp.Instance.GetCircleFillAmount());
         }
     }
 
@@ -55,33 +58,33 @@ public class PlayerVisual : MonoBehaviour {
         animator.SetBool("isWallSliding", PlayerMovement.Instance.GetIsWallSliding());
     }
 
-    private void Player_OnJump(object sender, EventArgs e) {
+    public void PlayerMovement_OnJump(object sender, EventArgs e) {
         animator.SetTrigger("jumpTrigger");
         smokeFX.Play();
     }
-    private void Player_OnAirJump(object sender, EventArgs e) {
+    private void PlayerMovement_OnAirJump(object sender, EventArgs e) {
         animator.SetTrigger("airJumpTrigger");
         smokeFX.Play();
     }
-    private void Player_OnWallJump(object sender, EventArgs e) {
+    private void PlayerMovement_OnWallJump(object sender, EventArgs e) {
         animator.SetTrigger("wallJumpTrigger");
         smokeFX.Play();
     }
 
-    private void Player_OnDash(object sender, EventArgs e) {
+    private void PlayerMovement_OnDash(object sender, EventArgs e) {
         animator.SetTrigger("dashTrigger");
         trailRenderer.emitting = true;
     }
 
-    private void Player_OnDashEnd(object sender, EventArgs e) {
+    private void PlayerMovement_OnDashEnd(object sender, EventArgs e) {
         trailRenderer.emitting = false;
     }
 
-    private void Player_OnLanded(object sender, EventArgs e) {
+    private void PlayerMovement_OnLanded(object sender, EventArgs e) {
         animator.SetTrigger("landTrigger");
     }
 
-    private void Player_OnFlip(object sender, EventArgs e) {
+    private void PlayerMovement_OnFlip(object sender, EventArgs e) {
         bool isGrounded = PlayerMovement.Instance.GetIsOnLand();
         if (isGrounded && timeSinceLastFlip > minSmokeFXTime) {
             smokeFX.Play();
@@ -89,12 +92,45 @@ public class PlayerVisual : MonoBehaviour {
         timeSinceLastFlip = 0;
     }
 
-    private void Star_OnStarCollect(int starValue) {
+    private void PlayerCollector_OnItemCollect(object sender, EventArgs e) {
         animator.SetTrigger("collectTrigger");
     }
 
-    private void HealthItem_OnHealthCollect(int healthValue) {
-        animator.SetTrigger("collectTrigger");
+    private void PlayerShoot_OnShoot(object sender, EventArgs e) {
+        animator.SetTrigger("shootTrigger");
+    }
+
+    private void HoldToPowerUp_OnPowerUpStart(object sender, EventArgs e) {
+        spriteRenderer.color = Color.yellow;
+        powerUpFX.Play();
+        var emission = smokeFX.emission;
+        emission.enabled = false;
+
+        powerUp = true;
+    }
+
+    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
+        StartCoroutine(PowerUpEndFade());
+        powerUpFX.Stop();
+        smokeFX.Play();
+        var emission = smokeFX.emission;
+        emission.enabled = true;
+        powerUp = false;
+    }
+
+    private IEnumerator PowerUpEndFade() {
+        float fadeTime = 3f;
+        float fadeTimer = 0f;
+        while (fadeTimer < fadeTime) {
+            spriteRenderer.color = Color.Lerp(Color.yellow, Color.white, fadeTimer / fadeTime);
+            fadeTimer += Time.deltaTime;
+            yield return null;
+        }
+        spriteRenderer.color = Color.white;
+    }
+
+    private void Player_OnStartMovingSameDirection(object sender, EventArgs e) {
+        smokeFX.Play();
     }
 
     public void OnPlayerHit() {
@@ -114,24 +150,6 @@ public class PlayerVisual : MonoBehaviour {
         }
     }
 
-    private void PlayerShoot_OnShoot(object sender, EventArgs e) {
-        animator.SetTrigger("shootTrigger");
-    }
-
-    private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
-        spriteRenderer.color = Color.yellow;
-        powerUp = true;
-    }
-
-    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
-        spriteRenderer.color = Color.white;
-        powerUp = false;
-    }
-
-    private void Player_OnStartMovingSameDirection(object sender, EventArgs e) {
-        smokeFX.Play();
-    }
-
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
         StartCoroutine(PlayerDied());
     }
@@ -144,11 +162,11 @@ public class PlayerVisual : MonoBehaviour {
     }
 
     private void OnDisable() {
-        PlayerMovement.Instance.OnJump -= Player_OnJump;
-        PlayerMovement.Instance.OnAirJump -= Player_OnAirJump;
-        PlayerMovement.Instance.OnWallJump -= Player_OnWallJump;
-        PlayerMovement.Instance.OnLanded -= Player_OnLanded;
-        PlayerMovement.Instance.OnFlip -= Player_OnFlip;
+        PlayerMovement.Instance.OnJump -= PlayerMovement_OnJump;
+        PlayerMovement.Instance.OnAirJump -= PlayerMovement_OnAirJump;
+        PlayerMovement.Instance.OnWallJump -= PlayerMovement_OnWallJump;
+        PlayerMovement.Instance.OnLanded -= PlayerMovement_OnLanded;
+        PlayerMovement.Instance.OnFlip -= PlayerMovement_OnFlip;
         PlayerMovement.Instance.OnStartMovingSameDirection -= Player_OnStartMovingSameDirection;
         PlayerShoot.Instance.OnShoot -= PlayerShoot_OnShoot;
         PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;

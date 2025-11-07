@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour {
 
     void Start() {
         Star.OnStarCollect += Star_OnStarCollect;
-        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpStart += HoldToPowerUp_OnPowerUp;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
 
         progressAmount = 0;
@@ -68,7 +68,7 @@ public class GameManager : MonoBehaviour {
 
     private void OnDisable() {
         Star.OnStarCollect -= Star_OnStarCollect;
-        HoldToPowerUp.Instance.OnPowerUp -= HoldToPowerUp_OnPowerUp;
+        HoldToPowerUp.Instance.OnPowerUpStart -= HoldToPowerUp_OnPowerUp;
         PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
     }
 }

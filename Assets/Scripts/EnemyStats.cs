@@ -12,7 +12,7 @@ public class EnemyStats : MonoBehaviour {
     private EnemyMovement enemyMovement;
 
     [SerializeField] private int damage = 1;
-    [SerializeField] private int Maxhealth = 3;
+    [SerializeField] private int Maxhealth = 30;
     private int currentHealth;
 
     [SerializeField] private LayerMask playerLayer;
@@ -57,21 +57,23 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
-        TryDamagePlayer(collision);
+        if (collision.gameObject.TryGetComponent(out PlayerHealth player) && canDamage) {
+            TryDamagePlayer();
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision) {
-        TryDamagePlayer(collision);
+        if (collision.gameObject.TryGetComponent(out PlayerHealth player) && canDamage) {
+            TryDamagePlayer();
+        }
     }
 
-    private void TryDamagePlayer(Collision2D collision) {
-        if (collision.gameObject.TryGetComponent(out PlayerHealth playerHealth) && canDamage) {
-            PlayerMovement.Instance.OnHitByEnemy(transform.position);
-            PlayerVisual.Instance.OnPlayerHit();
-            playerHealth.TakeDamge(damage);
-            StartCoroutine(StopHiting());
-            enemyMovement.TriggerStopMoving();
-        }
+    private void TryDamagePlayer() {
+        PlayerMovement.Instance.OnHitByEnemy(transform.position);
+        PlayerVisual.Instance.OnPlayerHit();
+        PlayerHealth.Instance.TakeDamge(damage);
+        StartCoroutine(StopHiting());
+        enemyMovement.TriggerStopMoving();
     }
 
     public IEnumerator StopHiting() {

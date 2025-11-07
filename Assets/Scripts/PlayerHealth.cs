@@ -29,14 +29,19 @@ public class PlayerHealth : MonoBehaviour {
         }
     }
 
-    private void HealthItem_OnHealthCollect(int amount) {
-        currentHealth += amount;
+    private void HealthItem_OnHealthCollect(int healthIncrease, int maxHealthIncrease) {
+        if (maxHealthIncrease > 0) {
+            maxHealth += maxHealthIncrease;
+            HealthUI.Instance.SetMaxHearts(maxHealth);
+        }
+
+        currentHealth += healthIncrease;
         if (currentHealth > maxHealth) {
             currentHealth = maxHealth;
         }
-
         HealthUI.Instance.UpdateHearts(currentHealth);
     }
+
     public int GetMaxHealth() { return maxHealth; }
 
     public int GetCurrentHealth() { return currentHealth; }

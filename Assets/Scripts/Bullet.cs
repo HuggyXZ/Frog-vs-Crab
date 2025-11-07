@@ -2,7 +2,11 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour {
 
-    public int bulletDamage = 1;
+    private int bulletDamage;
+
+    private void Start() {
+        bulletDamage = PlayerShoot.Instance.GetBulletDamage();
+    }
 
     private void OnTriggerEnter2D(Collider2D collision) {
         if (collision.gameObject.TryGetComponent(out EnemyStats enemy)) {

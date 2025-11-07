@@ -10,7 +10,8 @@ public class PlayerShoot : MonoBehaviour {
 
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 15f;
-    [SerializeField] private float fireRate = 2f;
+    [SerializeField] private float fireRate = 1f;
+    [SerializeField] private int bulletDamage = 5;
     private bool canShoot = true;
 
     private void Awake() {
@@ -18,8 +19,7 @@ public class PlayerShoot : MonoBehaviour {
     }
 
     private void Start() {
-        HoldToPowerUp.Instance.OnPowerUp += HoldToPowerUp_OnPowerUp;
-        HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
+        WizardHat.OnWizardHatCollect += WizardHat_OnWizardHatCollect;
         PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
     }
 
@@ -54,15 +54,13 @@ public class PlayerShoot : MonoBehaviour {
         canShoot = true;
     }
 
-    private void HoldToPowerUp_OnPowerUp(object sender, EventArgs e) {
-        bulletSpeed += 30f;
-        fireRate += 1f;
+    private void WizardHat_OnWizardHatCollect(float bulletSpeedIncrease, float fireRateIncrease, int bulletDamageIncrease) {
+        bulletSpeed += bulletSpeedIncrease;
+        fireRate += fireRateIncrease;
+        bulletDamage += bulletDamageIncrease;
     }
 
-    private void HoldToPowerUp_OnPowerUpEnd(object sender, EventArgs e) {
-        bulletSpeed -= 30f;
-        fireRate -= 1f;
-    }
+    public int GetBulletDamage() { return bulletDamage; }
 
     private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
         this.enabled = false;
