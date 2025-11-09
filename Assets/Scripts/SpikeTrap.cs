@@ -20,7 +20,6 @@ public class SpikeTrap : MonoBehaviour {
 
             // apply damage
             PlayerHealth.Instance.TakeDamge(damage);
-            PlayerVisual.Instance.OnPlayerHit();
         }
     }
 

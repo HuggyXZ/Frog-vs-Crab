@@ -35,7 +35,8 @@ public class PlayerVisual : MonoBehaviour {
         HoldToPowerUp.Instance.OnPowerUpStart += HoldToPowerUp_OnPowerUpStart;
         HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
         PlayerMovement.Instance.OnStartMovingSameDirection += Player_OnStartMovingSameDirection;
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnGetHit += PlayerHealth_OnPlayerHit;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDie;
     }
 
     // Update is called once per frame
@@ -84,14 +85,6 @@ public class PlayerVisual : MonoBehaviour {
         animator.SetTrigger("landTrigger");
     }
 
-    private void PlayerMovement_OnFlip(object sender, EventArgs e) {
-        bool isGrounded = PlayerMovement.Instance.GetIsOnLand();
-        if (isGrounded && timeSinceLastFlip > minSmokeFXTime) {
-            smokeFX.Play();
-        }
-        timeSinceLastFlip = 0;
-    }
-
     private void PlayerCollector_OnItemCollect(object sender, EventArgs e) {
         animator.SetTrigger("collectTrigger");
     }
@@ -133,7 +126,14 @@ public class PlayerVisual : MonoBehaviour {
         smokeFX.Play();
     }
 
-    public void OnPlayerHit() {
+    private void PlayerMovement_OnFlip(object sender, EventArgs e) {
+        bool isGrounded = PlayerMovement.Instance.GetIsOnLand();
+        if (isGrounded && timeSinceLastFlip > minSmokeFXTime) {
+            smokeFX.Play();
+        }
+        timeSinceLastFlip = 0;
+    }
+    private void PlayerHealth_OnPlayerHit(object sender, EventArgs e) {
         animator.SetTrigger("hitTrigger");
         StartCoroutine(FlashRed());
     }
@@ -150,7 +150,9 @@ public class PlayerVisual : MonoBehaviour {
         }
     }
 
-    private void PlayerHealth_OnPlayerDied(object sender, EventArgs e) {
+    private void PlayerHealth_OnPlayerDie(object sender, EventArgs e) {
+        OnDisable();
+
         StartCoroutine(PlayerDied());
     }
 
@@ -165,10 +167,16 @@ public class PlayerVisual : MonoBehaviour {
         PlayerMovement.Instance.OnJump -= PlayerMovement_OnJump;
         PlayerMovement.Instance.OnAirJump -= PlayerMovement_OnAirJump;
         PlayerMovement.Instance.OnWallJump -= PlayerMovement_OnWallJump;
+        PlayerMovement.Instance.OnDash -= PlayerMovement_OnDash;
+        PlayerMovement.Instance.OnDashEnd -= PlayerMovement_OnDashEnd;
         PlayerMovement.Instance.OnLanded -= PlayerMovement_OnLanded;
-        PlayerMovement.Instance.OnFlip -= PlayerMovement_OnFlip;
-        PlayerMovement.Instance.OnStartMovingSameDirection -= Player_OnStartMovingSameDirection;
+        PlayerCollector.Instance.OnItemCollect -= PlayerCollector_OnItemCollect;
         PlayerShoot.Instance.OnShoot -= PlayerShoot_OnShoot;
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        HoldToPowerUp.Instance.OnPowerUpStart -= HoldToPowerUp_OnPowerUpStart;
+        HoldToPowerUp.Instance.OnPowerUpEnd -= HoldToPowerUp_OnPowerUpEnd;
+        PlayerMovement.Instance.OnStartMovingSameDirection -= Player_OnStartMovingSameDirection;
+        PlayerMovement.Instance.OnFlip -= PlayerMovement_OnFlip;
+        PlayerHealth.Instance.OnGetHit -= PlayerHealth_OnPlayerHit;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDie;
     }
 }

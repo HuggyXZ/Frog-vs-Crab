@@ -22,7 +22,7 @@ public class ObjectSpawner : MonoBehaviour {
     private bool isSpawning = false;
 
     private void Start() {
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
 
         GatherSpawnPositions();
         StartCoroutine(SpawnObjectsIfNeeded());

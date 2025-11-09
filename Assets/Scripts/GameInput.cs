@@ -12,6 +12,7 @@ public class GameInput : MonoBehaviour {
         Instance = this;
         inputActions = new InputActions();
         inputActions.Enable(); // Important to enable the input actions
+        DontDestroyOnLoad(gameObject);
     }
 
     // Disable input actions when the object is destroyed

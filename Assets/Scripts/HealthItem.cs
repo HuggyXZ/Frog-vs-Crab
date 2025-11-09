@@ -8,6 +8,7 @@ public class HealthItem : MonoBehaviour, IItem {
     [SerializeField] private int maxHealthIncrease = 1;
 
     public void Collect() {
+        if (maxHealthIncrease == 0 && PlayerHealth.Instance.GetCurrentHealth() == PlayerHealth.Instance.GetMaxHealth()) return;
         OnHealthCollect?.Invoke(healthIncrease, maxHealthIncrease);
         Destroy(gameObject);
     }

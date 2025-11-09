@@ -4,7 +4,8 @@ using UnityEngine;
 public class PlayerHealth : MonoBehaviour {
     public static PlayerHealth Instance { get; private set; }
 
-    public event EventHandler OnPlayerDied;
+    public event EventHandler OnGetHit;
+    public event EventHandler OnPlayerDie;
 
     [SerializeField] private int maxHealth = 5;
     private int currentHealth;
@@ -21,10 +22,11 @@ public class PlayerHealth : MonoBehaviour {
 
     public void TakeDamge(int damage) {
         currentHealth -= damage;
+        OnGetHit?.Invoke(this, EventArgs.Empty);
         HealthUI.Instance.UpdateHearts(currentHealth);
 
         if (currentHealth <= 0) {
-            OnPlayerDied?.Invoke(this, EventArgs.Empty);
+            OnPlayerDie?.Invoke(this, EventArgs.Empty);
             this.enabled = false;
         }
     }

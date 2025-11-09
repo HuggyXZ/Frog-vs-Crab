@@ -20,7 +20,7 @@ public class PlayerShoot : MonoBehaviour {
 
     private void Start() {
         WizardHat.OnWizardHatCollect += WizardHat_OnWizardHatCollect;
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
     }
 
     void Update() {

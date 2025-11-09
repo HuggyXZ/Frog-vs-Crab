@@ -61,7 +61,7 @@ public class EnemyMovement : MonoBehaviour {
         playerTransform = PlayerMovement.Instance.transform;
         playerCollider = playerTransform.GetComponent<BoxCollider2D>();
         platformCollider = Platform.Instance.GetComponent<CompositeCollider2D>();
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
         enemyStats.OnDie += EnemyStats_OnDie;
     }
 
@@ -74,15 +74,14 @@ public class EnemyMovement : MonoBehaviour {
                 ApplyJump();
                 DecideDroppingDown();
             }
-
-
-            Flip();
-            OnLandCheck();
-            OnPlatformCheck();
-            PlayerDirectlyAboveCheck();
-            PlayerDirectlyBelowCheck();
-            PlayerAnyBelowCheck();
         }
+
+        Flip();
+        OnLandCheck();
+        OnPlatformCheck();
+        PlayerDirectlyAboveCheck();
+        PlayerDirectlyBelowCheck();
+        PlayerAnyBelowCheck();
     }
 
     private void UpdateTargetInfo() {
@@ -273,7 +272,7 @@ public class EnemyMovement : MonoBehaviour {
     }
 
     private void OnDisable() {
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
         enemyStats.OnDie -= EnemyStats_OnDie;
     }
 }

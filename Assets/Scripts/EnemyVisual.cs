@@ -21,7 +21,7 @@ public class EnemyVisual : MonoBehaviour {
         enemyStats.OnAttackPlayer += EnemyStats_OnAttackPlayer;
         enemyStats.OnGetHit += EnemyStats_OnGetHit;
         enemyStats.OnDie += EnemyStats_OnDie;
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
     }
 
     void LateUpdate() {
@@ -68,6 +68,6 @@ public class EnemyVisual : MonoBehaviour {
         enemyStats.OnAttackPlayer -= EnemyStats_OnAttackPlayer;
         enemyStats.OnGetHit -= EnemyStats_OnGetHit;
         enemyStats.OnDie -= EnemyStats_OnDie;
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
     }
 }

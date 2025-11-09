@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 
 public class EnemyStats : MonoBehaviour {
     public event Action OnAttackPlayer;
+    public event Action OnHitPlayer;
     public event Action OnGetHit;
     public event Action OnDie;
 
@@ -24,14 +25,14 @@ public class EnemyStats : MonoBehaviour {
     private bool canDamage = true;
 
     [Header("Loot")]
-    public List<LootItem> lootTable = new List<LootItem>();
+    [SerializeField] private List<LootItem> lootTable = new List<LootItem>();
 
     private void Awake() {
         enemyMovement = GetComponent<EnemyMovement>();
     }
 
     private void Start() {
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
 
         currentHealth = Maxhealth;
     }
@@ -70,8 +71,8 @@ public class EnemyStats : MonoBehaviour {
 
     private void TryDamagePlayer() {
         PlayerMovement.Instance.OnHitByEnemy(transform.position);
-        PlayerVisual.Instance.OnPlayerHit();
         PlayerHealth.Instance.TakeDamge(damage);
+        OnHitPlayer?.Invoke();
         StartCoroutine(StopHiting());
         enemyMovement.TriggerStopMoving();
     }
@@ -131,6 +132,6 @@ public class EnemyStats : MonoBehaviour {
     }
 
     private void OnDisable() {
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
     }
 }

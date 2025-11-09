@@ -1,7 +1,10 @@
 using System.Collections;
 using UnityEngine;
+using System;
 
 public class BounceTrap : MonoBehaviour {
+    public static event Action BounceTrapTrigger;
+
     [SerializeField] private float bounceForce = 60f;
     private bool canTriggerTrap = true;
 
@@ -10,14 +13,16 @@ public class BounceTrap : MonoBehaviour {
     private void OnTriggerEnter2D(Collider2D collision) {
         if (!canTriggerTrap) return;
         if (collision.gameObject.TryGetComponent(out PlayerHealth player)) {
-            animator.SetTrigger("bounceTrapTrigger");
             PlayerVisual.Instance.PlayerMovement_OnJump(null, null);
-            StartCoroutine(TriggerTrapCooldown());
+            animator.SetTrigger("bounceTrapTrigger");
+            BounceTrapTrigger?.Invoke();
 
             // apply bounce
             Rigidbody2D playerRigidBody = player.GetComponent<Rigidbody2D>();
             playerRigidBody.linearVelocityY = 0f;
             playerRigidBody.linearVelocity = Vector2.up * bounceForce;
+
+            StartCoroutine(TriggerTrapCooldown());
         }
     }
 

@@ -93,7 +93,7 @@ public class PlayerMovement : MonoBehaviour {
     private void Start() {
         HoldToPowerUp.Instance.OnPowerUpStart += HoldToPowerUp_OnPowerUp;
         HoldToPowerUp.Instance.OnPowerUpEnd += HoldToPowerUp_OnPowerUpEnd;
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
     }
 
     private void Update() {
@@ -391,7 +391,7 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     public IEnumerator HandleSpikeTrapKnockback() {
-        float knockbackDuration = 0.2f;
+        float knockbackDuration = 0.1f;
         canMove = false;
         yield return new WaitForSeconds(knockbackDuration);
         canMove = true;
@@ -422,6 +422,6 @@ public class PlayerMovement : MonoBehaviour {
     private void OnDisable() {
         HoldToPowerUp.Instance.OnPowerUpStart -= HoldToPowerUp_OnPowerUp;
         HoldToPowerUp.Instance.OnPowerUpEnd -= HoldToPowerUp_OnPowerUpEnd;
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
     }
 }

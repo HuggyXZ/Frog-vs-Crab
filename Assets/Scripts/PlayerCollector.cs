@@ -10,7 +10,7 @@ public class PlayerCollector : MonoBehaviour {
     }
 
     private void Start() {
-        PlayerHealth.Instance.OnPlayerDied += PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
@@ -25,6 +25,6 @@ public class PlayerCollector : MonoBehaviour {
     }
 
     private void OnDisable() {
-        PlayerHealth.Instance.OnPlayerDied -= PlayerHealth_OnPlayerDied;
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
     }
 }
