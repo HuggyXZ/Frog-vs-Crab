@@ -10,6 +10,10 @@ public class BounceTrap : MonoBehaviour {
 
     [SerializeField] private Animator animator;
 
+    private void Start() {
+        PlayerHealth.Instance.OnPlayerDie += PlayerHealth_OnPlayerDied;
+    }
+
     private void OnTriggerEnter2D(Collider2D collision) {
         if (!canTriggerTrap) return;
         if (collision.gameObject.TryGetComponent(out PlayerHealth player)) {
@@ -32,5 +36,15 @@ public class BounceTrap : MonoBehaviour {
         yield return new WaitForSeconds(trapCooldown);
         canTriggerTrap = true;
         animator.SetTrigger("idleTrigger");
+    }
+
+    private void PlayerHealth_OnPlayerDied(object sender, System.EventArgs e) {
+        StopAllCoroutines();
+        canTriggerTrap = false;
+        this.enabled = false;
+    }
+
+    private void OnDisable() {
+        PlayerHealth.Instance.OnPlayerDie -= PlayerHealth_OnPlayerDied;
     }
 }

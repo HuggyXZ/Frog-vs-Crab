@@ -18,7 +18,7 @@ TagManager:
   - Enemy
   - MovingPlatform
   - ItemPickUp
-  - 
+  - Boss
   - 
   - 
   - 
@@ -51,7 +51,7 @@ TagManager:
   - name: Trap
     uniqueID: 3691370931
     locked: 0
-  - name: MovingPlatform
+  - name: Platform
     uniqueID: 2957991835
     locked: 0
   - name: BigHealthItem
@@ -71,6 +71,9 @@ TagManager:
     locked: 0
   - name: Enemy
     uniqueID: 2999850323
+    locked: 0
+  - name: Boss
+    uniqueID: 287771465
     locked: 0
   - name: Player
     uniqueID: 3152848147

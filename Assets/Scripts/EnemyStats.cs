@@ -6,7 +6,6 @@ using Random = UnityEngine.Random;
 
 public class EnemyStats : MonoBehaviour {
     public event Action OnAttackPlayer;
-    public event Action OnHitPlayer;
     public event Action OnGetHit;
     public event Action OnDie;
 
@@ -72,7 +71,6 @@ public class EnemyStats : MonoBehaviour {
     private void TryDamagePlayer() {
         PlayerMovement.Instance.OnHitByEnemy(transform.position);
         PlayerHealth.Instance.TakeDamge(damage);
-        OnHitPlayer?.Invoke();
         StartCoroutine(StopHiting());
         enemyMovement.TriggerStopMoving();
     }
